@@ -7,15 +7,15 @@ packages = ["vpn_manager"]
 
 [project]
 name = "vpn-manager"
+description = "Manage WireGuard VPN peers (both server and clients)"
 version = "2024.12.0a"
+license = {file = "LICENSE"}
+readme = "README.md"
 requires-python = ">=3.8"
 dependencies = ["click>=8.1"]
 authors = [
     {name = "Fedor Lyanguzov"},
 ]
-license = {file = "LICENSE"}
-readme = "README.md"
-description = "Manage WireGuard VPN peers (both server and clients)"
 
 [project.optional-dependencies]
 test = ["pytest"]
