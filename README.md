@@ -17,3 +17,13 @@ pytest
 flake8 vpn_manager
 black vpn_manager
 ```
+
+Test runs:
+```
+# package
+$ python -m vpn_manager
+run
+# script declared in pyproject.toml
+$ example
+run
+```
