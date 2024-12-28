@@ -1,1 +1,3 @@
-from .__main__ import *
+from . import peers
+
+__all__ = ["peers"]
