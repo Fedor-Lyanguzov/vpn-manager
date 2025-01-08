@@ -49,7 +49,6 @@ def rough_merge_binaries(binaries: List[str], req_len: int) -> List[str]:
     ):
         ip_with_max_vlsm = max(ips, key=lambda x: x.rfind("1"))
         max_vlsm = ip_with_max_vlsm.rfind("1")
-        print(f"{max_vlsm=}")
         reduced_ips = set()
         merged_ips = set()
         for ip in ips:
@@ -66,7 +65,6 @@ def rough_merge_binaries(binaries: List[str], req_len: int) -> List[str]:
             ips = merged_ips
         else:
             reduction_limit_reached = True
-        print(f"{len(ips)=}")
 
     ips.update(non_reducible_ips)
     return sorted(ips)
