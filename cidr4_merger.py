@@ -3,6 +3,7 @@ from ipaddress import IPv4Address
 from typing import List, Tuple
 from itertools import groupby
 from collections import defaultdict
+import cProfile
 
 
 def get_data(input_file):
@@ -70,6 +71,49 @@ def rough_merge_binaries(binaries: List[str], req_len: int) -> List[str]:
     return sorted(ips)
 
 
+def smooth_merge_binaries(binaries: List[str], req_len: int) -> List[str]:
+    non_reducible_ips = set()
+    ips = set()
+    for ip in binaries:
+        if "1" not in reduce_binary(ip):
+            non_reducible_ips.add(ip)
+        else:
+            ips.add(ip)
+
+    while len(ips) > 0 and len(ips) + len(non_reducible_ips) > req_len:
+        print(f"{req_len=} {len(ips) + len(non_reducible_ips)=}")
+
+        group_dict = defaultdict(list)
+        for ip in ips:
+            group_dict[ip.rfind("1")].append(ip)
+
+        max_len = max(group_dict)
+        lst = group_dict[max_len]
+        for x, y in zip(lst, lst[1:]):
+            i = x.rfind("1")
+            if y.startswith(x[:i]):
+                ips.remove(x)
+                ips.remove(y)
+                ips.add(reduce_binary(x))
+                break
+        else:
+            x = lst[0]
+            ips.remove(x)
+            ips.add(reduce_binary(x))
+
+        _ips = ips | non_reducible_ips
+        non_reducible_ips = set()
+        ips = set()
+        for ip in _ips:
+            if "1" not in reduce_binary(ip):
+                non_reducible_ips.add(ip)
+            else:
+                ips.add(ip)
+
+    ips.update(non_reducible_ips)
+    return sorted(ips)
+
+
 def main():
     file = "cidr4.txt"
     required_len = 20
@@ -80,6 +124,13 @@ def main():
     rough_merged_bin_ips = rough_merge_binaries(bin_ips, required_len)
     print(f"{len(rough_merged_bin_ips)=}")
     for ip in rough_merged_bin_ips:
+        print(ip)
+
+    print("#" * 128)
+
+    smooth_merged_bin_ips = smooth_merge_binaries(rough_merged_bin_ips, required_len)
+    print(f"{len(smooth_merged_bin_ips)=}")
+    for ip in smooth_merged_bin_ips:
         print(ip)
 
 
@@ -103,3 +154,4 @@ if __name__ == "__main__":
     assert reduce_binary("00000000000010000000000000000000") == "0" * 32
 
     main()
+    # cProfile.run("main()")
