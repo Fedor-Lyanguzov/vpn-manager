@@ -14,6 +14,7 @@ def cidr4_to_binary(cidr4: str) -> Tuple[str, int]:
     vlsm = int(vlsm)
     ipv4 = IPv4Address(ip_str)
     binary_ip = bin(int(ipv4))[2:]
+    binary_ip = binary_ip.zfill(32)
     return binary_ip, vlsm
 
 
@@ -26,10 +27,13 @@ def binary_to_cidr4(binary_ip: str, vlsm: int) -> str:
 def main():
     file = "cidr4.txt"
     data = get_data(file)
+    bin_ips = list(map(cidr4_to_binary, data))
+    for b in bin_ips[:5]:
+        print(b)
 
 
 if __name__ == "__main__":
-    assert cidr4_to_binary("4.78.139.0/24") == ("100010011101000101100000000", 24)
-    assert binary_to_cidr4("100010011101000101100000000", 24) == "4.78.139.0/24"
+    assert cidr4_to_binary("4.78.139.0/24") == ("00000100010011101000101100000000", 24)
+    assert binary_to_cidr4("00000100010011101000101100000000", 24) == "4.78.139.0/24"
 
     main()
