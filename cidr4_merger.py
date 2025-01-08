@@ -1,45 +1,35 @@
-from copy import deepcopy
-from typing import List
+import ipaddress
+from ipaddress import IPv4Address
+from typing import List, Tuple
 
-from netaddr import IPNetwork, cidr_merge
 
-
-def get_ips(input_file) -> List[IPNetwork]:
+def get_data(input_file):
     with open(input_file, "r") as file:
         data = file.read().splitlines()
-    return [IPNetwork(line) for line in data]
+    return data
 
 
-def reduce_prefixlen(ip: IPNetwork, step=1) -> IPNetwork:
-    """Reduce the CIDR prefix len by step"""
-    new_ip = IPNetwork(ip)
-    new_ip.prefixlen -= step
-    return IPNetwork(new_ip.cidr)
+def cidr4_to_binary(cidr4: str) -> Tuple[str, int]:
+    ip_str, vlsm = cidr4.strip().split("/")
+    vlsm = int(vlsm)
+    ipv4 = IPv4Address(ip_str)
+    binary_ip = bin(int(ipv4))[2:]
+    return binary_ip, vlsm
 
 
-def merge_ips(ips_to_reduce: List[IPNetwork], max_len, step=1) -> List[IPNetwork]:
-    ips = deepcopy(ips_to_reduce)
-    reduction_limit_reached = False
-    while len(ips) > max_len and not reduction_limit_reached:
-        reduced_ips = map(reduce_prefixlen, ips)
-        merged_ips = cidr_merge(reduced_ips)
-        if len(merged_ips) > 1:
-            ips = merged_ips
-        else:
-            reduction_limit_reached = True
-            print("The reduction limit has been reached")
-    return ips
+def binary_to_cidr4(binary_ip: str, vlsm: int) -> str:
+    int_ip = int(binary_ip, 2)
+    ip_str = str(ipaddress.IPv4Address(int_ip))
+    return f"{ip_str}/{vlsm}"
 
 
 def main():
     file = "cidr4.txt"
-    ips = get_ips(file)
-    print(f"{len(ips)=}")
-    merged_ips = merge_ips(ips, 10)
-    print(f"{len(merged_ips)=}")
-    print(", ".join([str(x) for x in merged_ips]))
+    data = get_data(file)
 
 
 if __name__ == "__main__":
-    assert reduce_prefixlen(IPNetwork("4.78.139.0/24")) == IPNetwork("4.78.138.0/23")
+    assert cidr4_to_binary("4.78.139.0/24") == ("100010011101000101100000000", 24)
+    assert binary_to_cidr4("100010011101000101100000000", 24) == "4.78.139.0/24"
+
     main()
