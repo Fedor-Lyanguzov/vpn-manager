@@ -42,4 +42,5 @@ def main():
 
 if __name__ == "__main__":
     assert reduce_prefixlen(IPNetwork("4.78.139.0/24")) == IPNetwork("4.78.138.0/23")
+    assert merge_ips(list(map(IPNetwork, ["1.0.0.0/24", "1.0.0.1/24", "1.0.0.2/24"])), 1) == [IPNetwork("1.0.0.0/24")]
     main()
