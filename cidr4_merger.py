@@ -24,6 +24,14 @@ def binary_to_cidr4(binary_ip: str, vlsm: int) -> str:
     return f"{ip_str}/{vlsm}"
 
 
+def reduce_bin_ip(bin_ip: str, vlsm: int) -> Tuple[str, int]:
+    if vlsm == 0:
+        return bin_ip, vlsm
+    new_vlsm = vlsm - 1
+    new_bin_ip = bin_ip[:new_vlsm] + "0" * (32 - new_vlsm)
+    return new_bin_ip, new_vlsm
+
+
 def main():
     file = "cidr4.txt"
     data = get_data(file)
@@ -35,5 +43,17 @@ def main():
 if __name__ == "__main__":
     assert cidr4_to_binary("4.78.139.0/24") == ("00000100010011101000101100000000", 24)
     assert binary_to_cidr4("00000100010011101000101100000000", 24) == "4.78.139.0/24"
+    assert reduce_bin_ip("00000100010011101000101100000000", 24) == (
+        "00000100010011101000101000000000",
+        23,
+    )
+    assert reduce_bin_ip("10000000000000000000000000000000", 1) == (
+        "00000000000000000000000000000000",
+        0,
+    )
+    assert reduce_bin_ip("10000000000000000000000000000000", 0) == (
+        "10000000000000000000000000000000",
+        0,
+    )
 
     main()
