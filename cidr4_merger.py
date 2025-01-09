@@ -41,14 +41,13 @@ def get_mask(binary: str) -> str:
 
 def remove_ips_with_subnets(binaries: Set[str]) -> Set[str]:
     sorted_binaries = sorted(binaries)
-    i = 0
-    while i < len(sorted_binaries) - 1:
-        mask = get_mask(sorted_binaries[i])
-        if sorted_binaries[i + 1].startswith(mask):
-            del sorted_binaries[i]
-        else:
-            i += 1
-    return set(sorted_binaries)
+    result = set()
+    for x, y in zip(sorted_binaries, sorted_binaries[1:]):
+        mask = get_mask(x)
+        if not y.startswith(mask):
+            result.add(x)
+    result.add(sorted_binaries[-1])
+    return result
 
 
 def rough_merge_binaries(binaries: List[str], req_len: int) -> List[str]:
@@ -104,7 +103,7 @@ def smooth_merge_binaries(binaries: List[str], req_len: int) -> List[str]:
 
 def main():
     file = "cidr4.txt"
-    required_len = 20
+    required_len = 15
 
     data = get_data(file)
     bin_ips = list(map(cidr4_to_binary, data))
@@ -172,7 +171,6 @@ if __name__ == "__main__":
         "1111000",
         "0101000",
     }
-    assert remove_ips_with_subnets(set()) == set()
 
     # main()
     cProfile.run("main()")
