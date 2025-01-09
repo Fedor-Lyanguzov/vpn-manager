@@ -1,6 +1,6 @@
 from copy import deepcopy
 from ipaddress import IPv4Address
-from typing import List, Tuple
+from typing import List, Tuple, Set
 from itertools import groupby
 from collections import defaultdict
 import cProfile
@@ -42,6 +42,19 @@ def get_mask(binary: str) -> str:
     return binary[: i + 1]
 
 
+def remove_ips_with_subnets(binaries: Set[str]) -> Set[str]:
+    """Убрать ip, у которых есть подсети"""
+    sorted_binaries = sorted(binaries)
+    i = 0
+    while i < len(sorted_binaries) - 1:
+        mask = get_mask(sorted_binaries[i])
+        if sorted_binaries[i + 1].startswith(mask):
+            del sorted_binaries[i]
+        else:
+            i += 1
+    return set(sorted_binaries)
+
+
 def rough_merge_binaries(binaries: List[str], req_len: int) -> List[str]:
     ips = set(deepcopy(binaries))
     reduction_limit_reached = False
@@ -50,23 +63,14 @@ def rough_merge_binaries(binaries: List[str], req_len: int) -> List[str]:
         ip_with_max_vlsm = max(ips, key=lambda x: x.rfind("1"))
         max_vlsm = ip_with_max_vlsm.rfind("1")
         reduced_ips = set()
-        merged_ips = set()
+        other_ips = set()
         for ip in ips:
             if ip.rfind("1") == max_vlsm:
                 reduced_ips.add(reduce_binary(ip))
             else:
-                merged_ips.add(ip)
+                other_ips.add(ip)
 
-        filtered_set = set()
-        for r_ip in reduced_ips:
-            mask = get_mask(r_ip)
-            for ip in merged_ips:
-                if ip.startswith(mask):
-                    filtered_set.add(r_ip)
-
-        reduced_ips -= filtered_set
-        merged_ips.update(reduced_ips)
-
+        merged_ips = remove_ips_with_subnets(reduced_ips | other_ips)
         if len(merged_ips) > req_len:
             ips = merged_ips
         else:
@@ -76,45 +80,29 @@ def rough_merge_binaries(binaries: List[str], req_len: int) -> List[str]:
 
 
 def smooth_merge_binaries(binaries: List[str], req_len: int) -> List[str]:
-    non_reducible_ips = set()
-    ips = set()
-    for ip in binaries:
-        if "1" not in reduce_binary(ip):
-            non_reducible_ips.add(ip)
-        else:
-            ips.add(ip)
+    ips = set(deepcopy(binaries))
 
-    while len(ips) > 0 and len(ips) + len(non_reducible_ips) > req_len:
-        # print(f"{req_len=} {len(ips) + len(non_reducible_ips)=}")
-
+    while len(ips) > req_len:
         group_dict = defaultdict(list)
         for ip in ips:
             group_dict[ip.rfind("1")].append(ip)
 
         max_len = max(group_dict)
-        lst = group_dict[max_len]
-        for x, y in zip(lst, lst[1:]):
-            i = x.rfind("1")
-            if y.startswith(x[:i]):
+        sorted_group = sorted(group_dict[max_len])
+        for x, y in zip(sorted_group, sorted_group[1:]):
+            mask = get_mask(x)
+            if y.startswith(mask):
                 ips.remove(x)
                 ips.remove(y)
                 ips.add(reduce_binary(x))
                 break
         else:
-            x = lst[0]
+            x = sorted_group[0]
             ips.remove(x)
             ips.add(reduce_binary(x))
 
-        _ips = ips | non_reducible_ips
-        non_reducible_ips = set()
-        ips = set()
-        for ip in _ips:
-            if "1" not in reduce_binary(ip):
-                non_reducible_ips.add(ip)
-            else:
-                ips.add(ip)
+        ips = remove_ips_with_subnets(ips)
 
-    ips.update(non_reducible_ips)
     return sorted(ips)
 
 
@@ -133,12 +121,12 @@ def main():
     for ip in rough_merged_bin_ips:
         print(ip)
 
-    # print("#" * 128)
-    #
-    # smooth_merged_bin_ips = smooth_merge_binaries(rough_merged_bin_ips, required_len)
-    # print(f"{len(smooth_merged_bin_ips)=}")
-    # for ip in smooth_merged_bin_ips:
-    #     print(ip)
+    print("\n" + "#" * 128 + "\n")
+
+    smooth_merged_bin_ips = smooth_merge_binaries(rough_merged_bin_ips, required_len)
+    print(f"{len(smooth_merged_bin_ips)=}")
+    for ip in smooth_merged_bin_ips:
+        print(ip)
 
     # smooth_merged_bin_ips = smooth_merge_binaries(bin_ips, required_len)
     # print(f"{len(smooth_merged_bin_ips)=}")
@@ -169,6 +157,26 @@ if __name__ == "__main__":
     assert get_mask("10000000000000000000000000000000") == "1"
     assert get_mask("00000000000000000000000000000000") == ""
     assert get_mask("00000000000010000000000000000000") == "0000000000001"
+
+    assert remove_ips_with_subnets(
+        {
+            "0001000",
+            "0001100",
+            "0001110",
+            "0001111",
+            "0101000",
+        }
+    ) == {
+        "0001111",
+        "0101000",
+    }
+
+    assert remove_ips_with_subnets({"0001000"}) == {"0001000"}
+    assert remove_ips_with_subnets({"1111000", "0101000"}) == {
+        "1111000",
+        "0101000",
+    }
+    assert remove_ips_with_subnets(set()) == set()
 
     main()
     # cProfile.run("main()")
