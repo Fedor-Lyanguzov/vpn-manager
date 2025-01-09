@@ -1,9 +1,8 @@
+import cProfile
+from collections import defaultdict
 from copy import deepcopy
 from ipaddress import IPv4Address
-from typing import List, Tuple, Set
-from itertools import groupby
-from collections import defaultdict
-import cProfile
+from typing import List, Set
 
 
 def get_data(input_file):
@@ -18,8 +17,7 @@ def cidr4_to_binary(cidr4: str) -> str:
     ipv4 = IPv4Address(ip_str)
     binary_ip = bin(int(ipv4))[2:]
     binary_ip = binary_ip.zfill(32)
-    binary = binary_ip[:vlsm] + "0" * (32 - vlsm)
-    return binary
+    return binary_ip[:vlsm] + "0" * (32 - vlsm)
 
 
 def binary_to_cidr4(binary: str) -> str:
@@ -30,7 +28,6 @@ def binary_to_cidr4(binary: str) -> str:
 
 
 def reduce_binary(binary: str) -> str:
-    assert len(binary) == 32
     vlsm = binary.rfind("1")
     if vlsm == -1:
         return binary
@@ -43,7 +40,6 @@ def get_mask(binary: str) -> str:
 
 
 def remove_ips_with_subnets(binaries: Set[str]) -> Set[str]:
-    """Убрать ip, у которых есть подсети"""
     sorted_binaries = sorted(binaries)
     i = 0
     while i < len(sorted_binaries) - 1:
@@ -58,7 +54,7 @@ def remove_ips_with_subnets(binaries: Set[str]) -> Set[str]:
 def rough_merge_binaries(binaries: List[str], req_len: int) -> List[str]:
     ips = set(deepcopy(binaries))
     reduction_limit_reached = False
-    max_vlsm = float("inf")
+    max_vlsm = None
     while len(ips) > req_len and not reduction_limit_reached and max_vlsm != -1:
         ip_with_max_vlsm = max(ips, key=lambda x: x.rfind("1"))
         max_vlsm = ip_with_max_vlsm.rfind("1")
@@ -178,5 +174,5 @@ if __name__ == "__main__":
     }
     assert remove_ips_with_subnets(set()) == set()
 
-    main()
-    # cProfile.run("main()")
+    # main()
+    cProfile.run("main()")
