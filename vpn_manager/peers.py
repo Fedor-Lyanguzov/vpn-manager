@@ -10,7 +10,7 @@ class Peer:
     endpoint: str = None
 
 
-def format_static_peer(static_peer, routes, keepalive=30):
+def format_static_peer(static_peer: Peer, routes, keepalive=30):
     return (
         "[Peer]\n"
         f"PublicKey = {static_peer.public_key}\n"
@@ -20,7 +20,7 @@ def format_static_peer(static_peer, routes, keepalive=30):
     ).strip()
 
 
-def format_interface(peer, dns, forward=False):
+def format_interface(peer: Peer, dns, forward=False):
     if forward:
         forward = (
             "PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE\n"
