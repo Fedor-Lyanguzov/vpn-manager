@@ -19,8 +19,12 @@ def cidr4_to_node(cidr4: str) -> Node:
     return ip_value, mask_len, added_ips_number
 
 
+def sort_nodes(nodes: list[Node]) -> list[Node]:
+    return sorted(nodes, key=lambda x: (x[1], x[0]))
+
+
 def data_to_nodes(data: list[str]) -> list[Node]:
-    return sorted(map(cidr4_to_node, data))
+    return sort_nodes(map(cidr4_to_node, data))
 
 
 def get_mask(node: Node) -> int:
@@ -90,5 +94,19 @@ if __name__ == "__main__":
     assert have_same_parent((value_a, 6, 0), (0, 1, 0)) is False
     assert have_same_parent((value_a, 6, 0), (0, 0, 0)) is False
 
-    # main()
+    assert sort_nodes(
+        [
+            (401219072, 24, 0),
+            (2899902464, 19, 0),
+            (400657664, 24, 0),
+            (520969728, 23, 0),
+        ]
+    ) == [
+        (2899902464, 19, 0),
+        (520969728, 23, 0),
+        (400657664, 24, 0),
+        (401219072, 24, 0),
+    ]
+
+    main()
     # cProfile.run("main()")
