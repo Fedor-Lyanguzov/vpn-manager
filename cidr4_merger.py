@@ -1,7 +1,5 @@
 import cProfile
 from typing import Optional
-from collections import defaultdict
-from itertools import groupby
 
 Node = tuple[int, int, int]
 
@@ -26,7 +24,7 @@ def sort_nodes(nodes: list[Node]) -> list[Node]:
 
 
 def data_to_nodes(data: list[str]) -> list[Node]:
-    return sort_nodes(map(cidr4_to_node, data))
+    return list(map(cidr4_to_node, data))
 
 
 def get_mask(node: Node) -> int:
@@ -76,7 +74,6 @@ def reduce_nodes(nodes: list[Node]) -> list[Node]:
         else:
             loners.append((a,))
             i += 1
-    # может лучше проверять левый или правый
     if i == len(group) - 1:
         loners.append(group[i])
 
