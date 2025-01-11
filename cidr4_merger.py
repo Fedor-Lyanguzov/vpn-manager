@@ -1,5 +1,4 @@
 import cProfile
-import math
 from typing import Optional
 
 Node = tuple[int, int, int]
