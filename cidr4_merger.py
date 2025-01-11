@@ -1,5 +1,7 @@
 import cProfile
 from typing import Optional
+from collections import defaultdict
+from itertools import groupby
 
 Node = tuple[int, int, int]
 
@@ -44,7 +46,60 @@ def have_same_parent(a: Node, b: Node) -> bool:
     return a[1] == b[1] and get_parent_mask(a) == get_parent_mask(b)
 
 
-def merge_nodes(nodes: list[Node]) -> list[Node]:
+def get_group_with_max_mask_len(nodes: list[Node]) -> list[Node]:
+    max_mask_len = max(nodes, key=lambda x: x[1])[1]
+    return sort_nodes(filter(lambda x: x[1] == max_mask_len, nodes))
+
+
+def get_parent(a: Node, b: Node = None) -> Node:
+    ip_value = get_parent_mask(a)
+    mask_len = a[1] - 1
+    added_ips_number = a[2] + 2 ** (32 - a[1])
+    if b:
+        assert have_same_parent(a, b), "ноды должны быть соседями"
+        added_ips_number = a[2] + b[2]
+    return ip_value, mask_len, added_ips_number
+
+
+def reduce_nodes(nodes: list[Node]) -> list[Node]:
+    group = get_group_with_max_mask_len(nodes)
+
+    neighbours = []
+    loners = []
+    i = 0
+    while i < len(group) - 1:
+        a = group[i]
+        b = group[i + 1]
+        if have_same_parent(a, b):
+            neighbours.append((a, b))
+            i += 2
+        else:
+            loners.append((a,))
+            i += 1
+    # может лучше проверять левый или правый
+    if i == len(group) - 1:
+        loners.append(group[i])
+
+    if neighbours:
+        zipped = zip(neighbours, map(lambda x: get_parent(x[0], x[1]), neighbours))
+        min_zipped = min(zipped, key=lambda x: x[1][2])
+        (a, b), parent = min_zipped
+        nodes.remove(a)
+        nodes.remove(b)
+        nodes.append(parent)
+    elif loners:
+        zipped = zip(loners, map(get_parent, loners))
+        min_zipped = min(zipped, key=lambda x: x[1][2])
+        a, parent = min_zipped
+        nodes.remove(a)
+        nodes.append(parent)
+    else:
+        assert False, "Error"
+
+    return sort_nodes(nodes)
+
+
+def merge_nodes(nodes: list[Node], required_len: int) -> list[Node]:
     pass
 
 
@@ -54,8 +109,10 @@ def main():
 
     data = get_data(file)
     nodes = data_to_nodes(data)
-    for n in nodes:
-        print(n)
+    # for n in nodes:
+    #     print(n)
+
+    merged_nodes = merge_nodes(nodes, required_len)
 
 
 if __name__ == "__main__":
@@ -108,5 +165,69 @@ if __name__ == "__main__":
         (401219072, 24, 0),
     ]
 
-    main()
+    assert get_group_with_max_mask_len(
+        [
+            (2899902464, 19, 0),
+            (520969728, 23, 0),
+            (400657664, 24, 0),
+            (401219072, 24, 0),
+        ]
+    ) == [(400657664, 24, 0), (401219072, 24, 0)]
+    assert get_group_with_max_mask_len(
+        [
+            (401219072, 24, 0),
+            (2899902464, 19, 0),
+            (520969728, 23, 0),
+        ]
+    ) == [(401219072, 24, 0)]
+
+    assert get_parent((0, 2, 12), (1073741824, 2, 3)) == (0, 1, 15)
+    assert get_parent((2147483648, 2, 1), (3221225472, 2, 2)) == (2147483648, 1, 3)
+
+    assert reduce_nodes(
+        [
+            (0, 0, 0),
+            (0, 2, 12),
+            (1073741824, 2, 3),
+        ]
+    ) == [
+        (0, 0, 0),
+        (0, 1, 15),
+    ]
+
+    assert reduce_nodes(
+        [
+            (0, 0, 0),
+            (0, 2, 12),
+            (1073741824, 2, 3),
+            (2147483648, 2, 1),
+            (3221225472, 2, 2),
+        ]
+    ) == [
+        (0, 0, 0),
+        (2147483648, 1, 3),
+        (0, 2, 12),
+        (1073741824, 2, 3),
+    ]
+
+    assert reduce_nodes(
+        [
+            (0, 2, 12),
+            (2147483648, 1, 0),
+        ]
+    ) == [
+        (0, 1, 12 + 2**30),
+        (2147483648, 1, 0),
+    ]
+
+    assert reduce_nodes(
+        [
+            (0, 1, 12 + 2**30),
+            (2147483648, 1, 0),
+        ]
+    ) == [
+        (0, 0, 12 + 2**30),
+    ]
+
+    # main()
     # cProfile.run("main()")
