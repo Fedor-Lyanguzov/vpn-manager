@@ -1,4 +1,5 @@
 import cProfile
+from typing import Optional
 
 Node = tuple[int, int, int]
 
@@ -22,6 +23,27 @@ def data_to_nodes(data: list[str]) -> list[Node]:
     return sorted(map(cidr4_to_node, data))
 
 
+def get_mask(node: Node) -> int:
+    value, mask_len, _ = node
+    x = (2**mask_len - 1) << (32 - mask_len)
+    mask = value & x
+    return mask
+
+
+def get_parent_mask(node: Node) -> Optional[int]:
+    if node[1] == 0:
+        return None
+    return get_mask((node[0], node[1] - 1, node[2]))
+
+
+def have_same_parent(a: Node, b: Node) -> bool:
+    return a[1] == b[1] and get_parent_mask(a) == get_parent_mask(b)
+
+
+def merge_nodes(nodes: list[Node]) -> list[Node]:
+    pass
+
+
 def main():
     file = "cidr4.txt"
     required_len = 15
@@ -36,5 +58,37 @@ if __name__ == "__main__":
     assert cidr4_to_node("4.78.139.0/24") == (72256256, 24, 0)
     assert cidr4_to_node("0.0.0.0/32") == (0, 32, 0)
 
-    main()
+    bin_a = "10011000000000001000010000010000"
+    assert len(bin_a) == 32
+    value_a = int(bin_a, 2)
+
+    bin_b = "10011100000000000000000000101011"
+    assert len(bin_b) == 32
+    value_b = int(bin_b, 2)
+
+    bin_c = "10011000000000000000000000000000"
+    assert len(bin_c) == 32
+    value_c = int(bin_c, 2)
+
+    bin_d = "11111100000000000000000000000000"
+    assert len(bin_c) == 32
+    value_d = int(bin_d, 2)
+
+    assert get_mask((value_a, 5, 0)) == value_c
+    assert get_mask((value_b, 5, 0)) == value_c
+    assert get_mask((0, 1, 0)) == 0
+    assert get_mask((0, 0, 0)) == 0
+
+    assert get_parent_mask((value_a, 6, 0)) == value_c
+    assert get_parent_mask((value_b, 6, 0)) == value_c
+    assert get_parent_mask((0, 1, 0)) == 0
+    assert get_parent_mask((0, 0, 0)) is None
+
+    assert have_same_parent((value_a, 6, 0), (value_b, 6, 0)) is True
+    assert have_same_parent((value_a, 6, 0), (value_b, 5, 0)) is False
+    assert have_same_parent((value_a, 6, 0), (value_d, 6, 0)) is False
+    assert have_same_parent((value_a, 6, 0), (0, 1, 0)) is False
+    assert have_same_parent((value_a, 6, 0), (0, 0, 0)) is False
+
+    # main()
     # cProfile.run("main()")
