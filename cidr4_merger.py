@@ -72,7 +72,7 @@ def reduce_nodes(nodes: list[Node]) -> list[Node]:
             neighbours.append((a, b))
             i += 2
         else:
-            loners.append((a,))
+            loners.append(a)
             i += 1
     if i == len(group) - 1:
         loners.append(group[i])
