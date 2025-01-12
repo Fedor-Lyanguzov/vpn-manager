@@ -1,7 +1,8 @@
 import cProfile
 from typing import Optional
+from collections.abc import Iterator
 
-Node = tuple[int, int, int]
+Node = tuple[int, int, int] # только аннотация
 
 
 def get_data(input_file):
@@ -13,31 +14,30 @@ def get_data(input_file):
 def cidr4_to_node(cidr4: str) -> Node:
     ip, mask_len = cidr4.strip().split("/")
     mask_len = int(mask_len)
-    added_ips_number = 0
     a, b, c, d = list(map(int, ip.split(".")))
     ip_value = a * 256**3 + b * 256**2 + c * 256**1 + d * 256**0
+    added_ips_number = 0
     return ip_value, mask_len, added_ips_number
 
 
-def sort_nodes(nodes: list[Node]) -> list[Node]:
+def sort_nodes(nodes: Iterator[Node]) -> list[Node]:
     return sorted(nodes, key=lambda x: (x[1], x[0]))
 
 
-def data_to_nodes(data: list[str]) -> list[Node]:
-    return list(map(cidr4_to_node, data))
+def data_to_nodes(data: Iterator[str]) -> Iterator[Node]:
+    return map(cidr4_to_node, data)
 
-
-def get_mask(node: Node) -> int:
-    value, mask_len, _ = node
-    x = (2**mask_len - 1) << (32 - mask_len)
-    mask = value & x
-    return mask
+def get_mask(ip, mask_len) -> int:
+    mask = ((1<<mask_len) - 1) << (32 - mask_len)
+    netaddr = ip & mask
+    return netaddr
 
 
 def get_parent_mask(node: Node) -> Optional[int]:
+    a, b, _ = node
     if node[1] == 0:
         return None
-    return get_mask((node[0], node[1] - 1, node[2]))
+    return get_mask(a, b-1)
 
 
 def have_same_parent(a: Node, b: Node) -> bool:
@@ -51,6 +51,7 @@ def get_group_with_max_mask_len(nodes: list[Node]) -> list[Node]:
 
 def get_parent(a: Node, b: Node = None) -> Node:
     ip_value = get_parent_mask(a)
+    # обычно стоит вскрыть кортеж
     mask_len = a[1] - 1
     added_ips_number = a[2] + 2 ** (32 - a[1])
     if b:
@@ -102,8 +103,7 @@ def merge_nodes(nodes: list[Node], required_len: int) -> list[Node]:
     return nodes
 
 
-def node_to_cidr4(node: Node) -> str:
-    ip_value, mask_len, _ = node
+def node_to_cidr4(ip_value, mask_len) -> str:
     lst = [str(ip_value >> (i << 3) & 0xFF) for i in reversed(range(4))]
     ip = ".".join(lst)
     return f"{ip}/{mask_len}"
@@ -115,9 +115,9 @@ def answer(nodes: list[Node], required_len: int) -> tuple[list[str], int]:
 
     cidr4s = []
     sum_added_ips = 0
-    for node in merged_nodes:
-        cidr4s.append(node_to_cidr4(node))
-        sum_added_ips += node[2]
+    for ip_value, mask_len, added_ips in merged_nodes:
+        cidr4s.append(node_to_cidr4(ip_value, mask_len))
+        sum_added_ips += added_ips
     return cidr4s, sum_added_ips
 
 
@@ -161,10 +161,10 @@ if __name__ == "__main__":
     assert len(bin_c) == 32
     value_d = int(bin_d, 2)
 
-    assert get_mask((value_a, 5, 0)) == value_c
-    assert get_mask((value_b, 5, 0)) == value_c
-    assert get_mask((0, 1, 0)) == 0
-    assert get_mask((0, 0, 0)) == 0
+    assert get_mask(value_a, 5) == value_c
+    assert get_mask(value_b, 5) == value_c
+    assert get_mask(0, 1) == 0
+    assert get_mask(0, 0) == 0
 
     assert get_parent_mask((value_a, 6, 0)) == value_c
     assert get_parent_mask((value_b, 6, 0)) == value_c
