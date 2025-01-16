@@ -19,19 +19,19 @@ def test_true():
 
 bin_a = "10011000000000001000010000010000"
 assert len(bin_a) == 32
-value_a = int(bin_a, 2)
+ip_a = int(bin_a, 2)
 
 bin_b = "10011100000000000000000000101011"
 assert len(bin_b) == 32
-value_b = int(bin_b, 2)
+ip_b = int(bin_b, 2)
 
 bin_c = "10011000000000000000000000000000"
 assert len(bin_c) == 32
-value_c = int(bin_c, 2)
+ip_c = int(bin_c, 2)
 
 bin_d = "11111100000000000000000000000000"
 assert len(bin_c) == 32
-value_d = int(bin_d, 2)
+ip_d = int(bin_d, 2)
 
 
 def test_cidr4_to_node():
@@ -45,25 +45,25 @@ def test_node_to_cidr4():
 
 
 def test_get_net_addr():
-    assert get_net_addr(value_a, 5) == value_c
-    assert get_net_addr(value_b, 5) == value_c
+    assert get_net_addr(ip_a, 5) == ip_c
+    assert get_net_addr(ip_b, 5) == ip_c
     assert get_net_addr(0, 1) == 0
     assert get_net_addr(0, 0) == 0
 
 
 def test_get_parent_mask():
-    assert get_parent_mask(value_a, 6) == value_c
-    assert get_parent_mask(value_b, 6) == value_c
+    assert get_parent_mask(ip_a, 6) == ip_c
+    assert get_parent_mask(ip_b, 6) == ip_c
     assert get_parent_mask(0, 1) == 0
     assert get_parent_mask(0, 0) is None
 
 
 def test_have_same_parent():
-    assert have_same_parent(value_a, 6, value_b, 6) is True
-    assert have_same_parent(value_a, 6, value_b, 5) is False
-    assert have_same_parent(value_a, 6, value_d, 6) is False
-    assert have_same_parent(value_a, 6, 0, 1) is False
-    assert have_same_parent(value_a, 6, 0, 0) is False
+    assert have_same_parent(ip_a, 6, ip_b, 6) is True
+    assert have_same_parent(ip_a, 6, ip_b, 5) is False
+    assert have_same_parent(ip_a, 6, ip_d, 6) is False
+    assert have_same_parent(ip_a, 6, 0, 1) is False
+    assert have_same_parent(ip_a, 6, 0, 0) is False
 
 
 def test_sort_nodes():
