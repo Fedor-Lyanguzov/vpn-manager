@@ -1,8 +1,8 @@
 import cProfile
-from typing import Optional
 from collections.abc import Iterator
+from typing import Optional
 
-Node = tuple[int, int, int] # только аннотация
+Node = tuple[int, int, int]
 
 
 def get_data(input_file):
@@ -27,8 +27,9 @@ def sort_nodes(nodes: Iterator[Node]) -> list[Node]:
 def data_to_nodes(data: Iterator[str]) -> Iterator[Node]:
     return map(cidr4_to_node, data)
 
+
 def get_mask(ip, mask_len) -> int:
-    mask = ((1<<mask_len) - 1) << (32 - mask_len)
+    mask = ((1 << mask_len) - 1) << (32 - mask_len)
     netaddr = ip & mask
     return netaddr
 
@@ -37,7 +38,7 @@ def get_parent_mask(node: Node) -> Optional[int]:
     a, b, _ = node
     if node[1] == 0:
         return None
-    return get_mask(a, b-1)
+    return get_mask(a, b - 1)
 
 
 def have_same_parent(a: Node, b: Node) -> bool:
