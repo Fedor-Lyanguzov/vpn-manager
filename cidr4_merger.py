@@ -143,8 +143,8 @@ if __name__ == "__main__":
     assert cidr4_to_node("4.78.139.0/24") == (72256256, 24, 0)
     assert cidr4_to_node("0.0.0.0/32") == (0, 32, 0)
 
-    assert node_to_cidr4((72256256, 24, 0)) == "4.78.139.0/24"
-    assert node_to_cidr4((0, 32, 10)) == "0.0.0.0/32"
+    assert node_to_cidr4(72256256, 24) == "4.78.139.0/24"
+    assert node_to_cidr4(0, 32) == "0.0.0.0/32"
 
     bin_a = "10011000000000001000010000010000"
     assert len(bin_a) == 32
