@@ -1,5 +1,4 @@
 import cProfile
-from collections.abc import Iterator
 from typing import Optional
 
 Node = tuple[int, int, int]
@@ -20,29 +19,26 @@ def cidr4_to_node(cidr4: str) -> Node:
     return ip_value, mask_len, added_ips_number
 
 
-def sort_nodes(nodes: Iterator[Node]) -> list[Node]:
+def sort_nodes(nodes: list[Node]) -> list[Node]:
     return sorted(nodes, key=lambda x: (x[1], x[0]))
 
 
-def data_to_nodes(data: Iterator[str]) -> Iterator[Node]:
-    return map(cidr4_to_node, data)
-
-
-def get_mask(ip, mask_len) -> int:
+def get_net_addr(ip: int, mask_len: int) -> int:
     mask = ((1 << mask_len) - 1) << (32 - mask_len)
-    netaddr = ip & mask
-    return netaddr
+    net_addr = ip & mask
+    return net_addr
 
 
-def get_parent_mask(node: Node) -> Optional[int]:
-    a, b, _ = node
-    if node[1] == 0:
+def get_parent_mask(ip: int, mask_len: int) -> Optional[int]:
+    if mask_len == 0:
         return None
-    return get_mask(a, b - 1)
+    return get_net_addr(ip, mask_len - 1)
 
 
-def have_same_parent(a: Node, b: Node) -> bool:
-    return a[1] == b[1] and get_parent_mask(a) == get_parent_mask(b)
+def have_same_parent(ip_a, mask_len_a, ip_b, mask_len_b) -> bool:
+    return mask_len_a == mask_len_b and get_parent_mask(
+        ip_a, mask_len_a
+    ) == get_parent_mask(ip_b, mask_len_b)
 
 
 def get_group_with_max_mask_len(nodes: list[Node]) -> list[Node]:
@@ -50,15 +46,16 @@ def get_group_with_max_mask_len(nodes: list[Node]) -> list[Node]:
     return list(filter(lambda x: x[1] == max_mask_len, nodes))
 
 
-def get_parent(a: Node, b: Node = None) -> Node:
-    ip_value = get_parent_mask(a)
-    # обычно стоит вскрыть кортеж
-    mask_len = a[1] - 1
-    added_ips_number = a[2] + 2 ** (32 - a[1])
+def get_parent(a: Node, b: Optional[Node] = None) -> Node:
+    ip_a, mask_len_a, added_ips_number_a = a
+    ip = get_parent_mask(ip_a, mask_len_a)
+    mask_len = mask_len_a - 1
+    added_ips_number = added_ips_number_a + 2 ** (32 - mask_len_a)
     if b:
-        assert have_same_parent(a, b), "ноды должны быть соседями"
-        added_ips_number = a[2] + b[2]
-    return ip_value, mask_len, added_ips_number
+        ip_b, mask_len_b, added_ips_b = b
+        assert have_same_parent(ip_a, mask_len_a, ip_b, mask_len_b)
+        added_ips_number = added_ips_number_a + added_ips_b
+    return ip, mask_len, added_ips_number
 
 
 def reduce_nodes(nodes: list[Node]) -> list[Node]:
@@ -68,9 +65,10 @@ def reduce_nodes(nodes: list[Node]) -> list[Node]:
     loners = []
     i = 0
     while i < len(group) - 1:
-        a = group[i]
-        b = group[i + 1]
-        if have_same_parent(a, b):
+        a, b = group[i], group[i + 1]
+        ip_a, mask_len_a, _ = a
+        ip_b, mask_len_b, _ = b
+        if have_same_parent(ip_a, mask_len_a, ip_b, mask_len_b):
             neighbours.append((a, b))
             i += 2
         else:
@@ -127,7 +125,7 @@ def main():
     required_len = 20
 
     data = get_data(file)
-    nodes = data_to_nodes(data)
+    nodes = list(map(cidr4_to_node, data))
     cidr4s, sum_added_ips = answer(nodes, required_len)
 
     cidr4s_str = "\n".join(cidr4s)
@@ -162,21 +160,21 @@ if __name__ == "__main__":
     assert len(bin_c) == 32
     value_d = int(bin_d, 2)
 
-    assert get_mask(value_a, 5) == value_c
-    assert get_mask(value_b, 5) == value_c
-    assert get_mask(0, 1) == 0
-    assert get_mask(0, 0) == 0
+    assert get_net_addr(value_a, 5) == value_c
+    assert get_net_addr(value_b, 5) == value_c
+    assert get_net_addr(0, 1) == 0
+    assert get_net_addr(0, 0) == 0
 
-    assert get_parent_mask((value_a, 6, 0)) == value_c
-    assert get_parent_mask((value_b, 6, 0)) == value_c
-    assert get_parent_mask((0, 1, 0)) == 0
-    assert get_parent_mask((0, 0, 0)) is None
+    assert get_parent_mask(value_a, 6) == value_c
+    assert get_parent_mask(value_b, 6) == value_c
+    assert get_parent_mask(0, 1) == 0
+    assert get_parent_mask(0, 0) is None
 
-    assert have_same_parent((value_a, 6, 0), (value_b, 6, 0)) is True
-    assert have_same_parent((value_a, 6, 0), (value_b, 5, 0)) is False
-    assert have_same_parent((value_a, 6, 0), (value_d, 6, 0)) is False
-    assert have_same_parent((value_a, 6, 0), (0, 1, 0)) is False
-    assert have_same_parent((value_a, 6, 0), (0, 0, 0)) is False
+    assert have_same_parent(value_a, 6, value_b, 6) is True
+    assert have_same_parent(value_a, 6, value_b, 5) is False
+    assert have_same_parent(value_a, 6, value_d, 6) is False
+    assert have_same_parent(value_a, 6, 0, 1) is False
+    assert have_same_parent(value_a, 6, 0, 0) is False
 
     assert sort_nodes(
         [
