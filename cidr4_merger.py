@@ -125,23 +125,21 @@ def lift_lonely_node(nodes: list[Node], singles: list[Node]) -> list[Node]:
         if parent[2] < min_parent[2]:
             min_single, min_parent = node, parent
 
-    new_nodes = [x for x in nodes]
-    new_nodes.remove(min_single)
-    new_nodes.append(min_parent)
-    new_nodes = sort_nodes(new_nodes)
-    return new_nodes
+    nodes.remove(min_single)
+    nodes.append(min_parent)
+    nodes = sort_nodes(nodes)
+    return nodes
 
 
 def merge_neighbors(
     nodes: list[Node], neighbours: list[tuple[Node, Node]]
 ) -> list[Node]:
-    new_nodes = [x for x in nodes]
     for a, b in neighbours:
         parent = make_parent(a, b)
-        new_nodes.remove(a)
-        new_nodes.remove(b)
-        new_nodes.append(parent)
-    return sort_nodes(new_nodes)
+        nodes.remove(a)
+        nodes.remove(b)
+        nodes.append(parent)
+    return sort_nodes(nodes)
 
 
 def find_neighbours_singles(groups: defaultdict) -> tuple[list, list]:
