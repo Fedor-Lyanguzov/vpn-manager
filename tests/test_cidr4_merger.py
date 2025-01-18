@@ -1,11 +1,23 @@
 import pytest
 
-from cidr4_merger import (Cidr4MergerError, cidr4_to_node,
-                          find_neighbours_singles, get_group_with_max_mask_len,
-                          get_net_addr, get_parent_ip, have_same_parent,
-                          lift_lonely_node, make_cidr4, make_groups,
-                          make_parent, merge_neighbors, merge_nodes,
-                          merge_nodes_recursion, reduce_nodes, sort_nodes)
+from cidr4_merger import (
+    Cidr4MergerError,
+    cidr4_to_node,
+    find_neighbours_singles,
+    get_group_with_max_mask_len,
+    get_net_addr,
+    get_parent_ip,
+    have_same_parent,
+    lift_lonely_node,
+    make_cidr4,
+    make_groups,
+    make_parent,
+    merge_neighbors,
+    merge_nodes,
+    merge_nodes_recursion,
+    reduce_nodes,
+    sort_nodes,
+)
 
 
 def test_true():
@@ -216,6 +228,44 @@ def test_make_groups():
         22: [(520963072, 22, 0, 520962048), (1089054720, 22, 0, 1089054720)],
         19: [(2899902464, 19, 0, 2899902464), (2915221504, 19, 0, 2915221504)],
     }
+
+
+def test_find_neighbours_singles():
+    nodes_with_neighbours = [
+        (0, 2, 12, 0),
+        (1073741824, 2, 3, 0),
+        (2147483648, 2, 1, 2147483648),
+        (3221225472, 2, 2, 2147483648),
+    ]
+    groups_with_neighbours = make_groups(nodes_with_neighbours)
+    assert find_neighbours_singles(groups_with_neighbours) == (
+        [
+            ((0, 2, 12, 0), (1073741824, 2, 3, 0)),
+            ((2147483648, 2, 1, 2147483648), (3221225472, 2, 2, 2147483648)),
+        ],
+        [],
+    )
+
+    nodes_with_singles = [
+        (0, 2, 12, 0),
+        (2147483648, 2, 1, 2147483648),
+    ]
+    groups_with_singles = make_groups(nodes_with_singles)
+    assert find_neighbours_singles(groups_with_singles) == (
+        [],
+        [(0, 2, 12, 0), (2147483648, 2, 1, 2147483648)],
+    )
+
+    nodes_with_neighbours_n_singles = [
+        (0, 2, 12, 0),
+        (1073741824, 2, 3, 0),
+        (2147483648, 2, 1, 2147483648),
+    ]
+    groups_with_singles = make_groups(nodes_with_neighbours_n_singles)
+    assert find_neighbours_singles(groups_with_singles) == (
+        [((0, 2, 12, 0), (1073741824, 2, 3, 0))],
+        [(2147483648, 2, 1, 2147483648)],
+    )
 
 
 # def test_merge_nodes_recursion():
