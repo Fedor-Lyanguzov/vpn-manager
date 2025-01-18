@@ -13,7 +13,7 @@ from cidr4_merger import (
     make_groups,
     make_parent,
     merge_neighbors,
-    merge_nodes,
+    merge_nodes_deprecated,
     merge_nodes_recursion,
     reduce_nodes,
     sort_nodes,
@@ -183,8 +183,8 @@ def test_reduce_nodes():
     assert str(exc_info.value) == "The top of the tree has no parent!"
 
 
-def test_merge_nodes():
-    assert merge_nodes(
+def test_merge_nodes_deprecated():
+    assert merge_nodes_deprecated(
         [
             (0, 2, 12, 0),
             (2147483648, 2, 1, 2147483648),
@@ -197,7 +197,7 @@ def test_merge_nodes():
     ]
 
     with pytest.raises(Exception) as exc_info:
-        merge_nodes(
+        merge_nodes_deprecated(
             [
                 (0, 2, 12, 0),
                 (2147483648, 2, 1, 2147483648),

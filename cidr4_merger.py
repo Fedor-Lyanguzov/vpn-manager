@@ -105,7 +105,7 @@ def reduce_nodes(nodes: list[Node]) -> list[Node]:
     return sort_nodes(nodes)
 
 
-def merge_nodes(nodes: list[Node], required_len: int) -> list[Node]:
+def merge_nodes_deprecated(nodes: list[Node], required_len: int) -> list[Node]:
     while len(nodes) > required_len:
         nodes = reduce_nodes(nodes)
     return nodes
