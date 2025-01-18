@@ -327,19 +327,27 @@ def test_lift_lonely_node(nodes_only_singles):
     assert new_nodes == [(2147483648, 1, 1073741825, 0), (0, 2, 12, 0)]
 
 
-# def test_merge_nodes_recursion():
-#     assert merge_nodes(
-#         [
-#             (0, 2, 12, 0),
-#             (2147483648, 2, 1, 2147483648),
-#             (3221225472, 2, 2, 2147483648),
-#         ],
-#         2,
-#     ) == merge_nodes_recursion(
-#         [
-#             (0, 2, 12, 0),
-#             (2147483648, 2, 1, 2147483648),
-#             (3221225472, 2, 2, 2147483648),
-#         ],
-#         2,
-#     )
+def test_merge_nodes_recursion():
+    assert merge_nodes_recursion(
+        [
+            (0, 2, 12, 0),
+            (2147483648, 2, 1, 2147483648),
+            (3221225472, 2, 2, 2147483648),
+        ],
+        2,
+    ) == [
+        (2147483648, 1, 3, 0),
+        (0, 2, 12, 0),
+    ]
+
+    with pytest.raises(Exception) as exc_info:
+        merge_nodes_recursion(
+            [
+                (0, 2, 12, 0),
+                (2147483648, 2, 1, 2147483648),
+                (3221225472, 2, 2, 2147483648),
+            ],
+            1,
+        )
+    assert exc_info.type is Cidr4MergerError
+    assert str(exc_info.value) == "The top of the tree has no parent!"
