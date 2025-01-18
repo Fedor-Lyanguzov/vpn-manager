@@ -207,3 +207,40 @@ def test_merge_nodes():
         )
     assert exc_info.type is Cidr4MergerError
     assert str(exc_info.value) == "The top of the tree has no parent!"
+
+
+def test_make_groups():
+    groups = make_groups(
+        [
+            (0, 2, 12, 0),
+            (1073741824, 2, 3, 0),
+            (2147483648, 2, 1, 2147483648),
+            (3221225472, 2, 2, 2147483648),
+        ]
+    )
+    assert dict(groups) == {
+        2: [
+            (0, 2, 12, 0),
+            (1073741824, 2, 3, 0),
+            (2147483648, 2, 1, 2147483648),
+            (3221225472, 2, 2, 2147483648),
+        ]
+    }
+
+
+# def test_merge_nodes_recursion():
+#     assert merge_nodes(
+#         [
+#             (0, 2, 12, 0),
+#             (2147483648, 2, 1, 2147483648),
+#             (3221225472, 2, 2, 2147483648),
+#         ],
+#         2,
+#     ) == merge_nodes_recursion(
+#         [
+#             (0, 2, 12, 0),
+#             (2147483648, 2, 1, 2147483648),
+#             (3221225472, 2, 2, 2147483648),
+#         ],
+#         2,
+#     )
