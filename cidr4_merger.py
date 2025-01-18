@@ -1,4 +1,5 @@
 import cProfile
+from collections import defaultdict
 
 Node = tuple[int, int, int, int]
 
@@ -113,16 +114,71 @@ def make_cidr4(ip, mask_len) -> str:
     return f"{ip_address}/{mask_len}"
 
 
-def answer(nodes: list[Node], required_len: int) -> tuple[list[str], int]:
-    nodes = sort_nodes(nodes)
-    merged_nodes = merge_nodes(nodes, required_len)
+def lift_lonely_node(nodes: list[Node], singles: list[Node]) -> list[Node]:
+    # find single whose parent has the least added addresses
+    min_single, min_parent = singles[0], make_parent(singles[0])
+    for node in singles[1:]:
+        parent = make_parent(node)
+        if parent[2] < min_parent[2]:
+            min_single, min_parent = node, parent
 
-    cidr4s = []
-    sum_added_ips = 0
-    for ip_value, mask_len, added_ips, _ in merged_nodes:
-        cidr4s.append(make_cidr4(ip_value, mask_len))
-        sum_added_ips += added_ips
-    return cidr4s, sum_added_ips
+    new_nodes = [x for x in nodes]
+    new_nodes.remove(min_single)
+    new_nodes.append(min_parent)
+    new_nodes = sort_nodes(new_nodes)
+    return new_nodes
+
+
+def merge_neighbors(
+    nodes: list[Node], neighbours: list[tuple[Node, Node]]
+) -> list[Node]:
+    new_nodes = [x for x in nodes]
+    for a, b in neighbours:
+        parent = make_parent(a, b)
+        new_nodes.remove(a)
+        new_nodes.remove(b)
+        new_nodes.append(parent)
+    return sort_nodes(nodes)
+
+
+def find_neighbours_singles(groups: defaultdict) -> tuple[list, list]:
+    neighbours = []
+    singles = []
+    for group in groups.values():
+        i = 0
+        while i < len(group) - 1:
+            a, b = group[i], group[i + 1]
+            ip_a, mask_len_a, _, parent_ip_a = a
+            ip_b, mask_len_b, _, parent_ip_b = b
+            if have_same_parent(mask_len_a, parent_ip_a, mask_len_b, parent_ip_b):
+                neighbours.append((a, b))
+                i += 2
+            else:
+                singles.append(a)
+                i += 1
+        if i == len(group) - 1:
+            singles.append(group[i])
+    return neighbours, singles
+
+
+def make_groups(nodes: list[Node]) -> defaultdict:
+    groups = defaultdict(list)
+    for n in nodes:
+        groups[n[1]].append(n)
+    return groups
+
+
+def merge_nodes_recursion(nodes: list[Node], required_len: int) -> list[Node]:
+    if len(nodes) <= required_len:
+        return nodes
+    groups = make_groups(nodes)
+    neighbours, singles = find_neighbours_singles(groups)
+    print(f"{len(nodes)=} {len(singles)=} {len(neighbours)=}")
+    if neighbours:
+        new_nodes = merge_neighbors(nodes, neighbours)
+        return merge_nodes_recursion(new_nodes, required_len)
+    new_nodes = lift_lonely_node(nodes, singles)
+    return merge_nodes_recursion(new_nodes, required_len)
 
 
 def main():
@@ -131,7 +187,16 @@ def main():
 
     data = get_data(file)
     nodes = list(map(cidr4_to_node, data))
-    cidr4s, sum_added_ips = answer(nodes, required_len)
+
+    nodes = sort_nodes(nodes)
+    # merged_nodes = merge_nodes(nodes, required_len)
+    merged_nodes = merge_nodes_recursion(nodes, required_len)
+
+    cidr4s = []
+    sum_added_ips = 0
+    for ip_value, mask_len, added_ips, _ in merged_nodes:
+        cidr4s.append(make_cidr4(ip_value, mask_len))
+        sum_added_ips += added_ips
 
     cidr4s_str = "\n".join(cidr4s)
     print(

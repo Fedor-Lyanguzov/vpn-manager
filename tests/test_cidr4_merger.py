@@ -2,15 +2,19 @@ import pytest
 
 from cidr4_merger import (
     Cidr4MergerError,
-    answer,
     cidr4_to_node,
+    find_neighbours_singles,
     get_group_with_max_mask_len,
     get_net_addr,
     get_parent_ip,
     have_same_parent,
+    lift_lonely_node,
     make_cidr4,
+    make_groups,
     make_parent,
+    merge_neighbors,
     merge_nodes,
+    merge_nodes_recursion,
     reduce_nodes,
     sort_nodes,
 )
@@ -201,21 +205,5 @@ def test_merge_nodes():
             ],
             1,
         )
-    assert exc_info.type is Cidr4MergerError
-    assert str(exc_info.value) == "The top of the tree has no parent!"
-
-
-def test_answer():
-    assert answer(
-        [
-            (0, 2, 12, 0),
-            (2147483648, 2, 1, 2147483648),
-            (3221225472, 2, 2, 2147483648),
-        ],
-        2,
-    ) == (["128.0.0.0/1", "0.0.0.0/2"], 15)
-
-    with pytest.raises(Exception) as exc_info:
-        answer([(0, 2, 0, 0), (2147483648, 2, 0, 2147483648)], 1)
     assert exc_info.type is Cidr4MergerError
     assert str(exc_info.value) == "The top of the tree has no parent!"
