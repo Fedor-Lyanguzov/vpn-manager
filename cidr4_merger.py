@@ -1,5 +1,8 @@
 import cProfile
+import sys
 from collections import defaultdict
+
+sys.setrecursionlimit(10_000)
 
 Node = tuple[int, int, int, int]
 
@@ -173,7 +176,6 @@ def merge_nodes_recursion(nodes: list[Node], required_len: int) -> list[Node]:
         return nodes
     groups = make_groups(nodes)
     neighbours, singles = find_neighbours_singles(groups)
-    print(f"{len(nodes)=} {len(singles)=} {len(neighbours)=}")
     if neighbours:
         new_nodes = merge_neighbors(nodes, neighbours)
         return merge_nodes_recursion(new_nodes, required_len)
