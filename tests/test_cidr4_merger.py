@@ -321,6 +321,12 @@ def test_merge_neighbors__neighbours_n_singles(nodes_with_neighbours_n_singles):
     ]
 
 
+def test_lift_lonely_node(nodes_only_singles):
+    singles = [(0, 2, 12, 0), (2147483648, 2, 1, 2147483648)]
+    new_nodes = lift_lonely_node(nodes_only_singles, singles)
+    assert new_nodes == [(2147483648, 1, 1073741825, 0), (0, 2, 12, 0)]
+
+
 # def test_merge_nodes_recursion():
 #     assert merge_nodes(
 #         [
