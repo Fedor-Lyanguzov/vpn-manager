@@ -138,7 +138,7 @@ def merge_neighbors(
         new_nodes.remove(a)
         new_nodes.remove(b)
         new_nodes.append(parent)
-    return sort_nodes(nodes)
+    return sort_nodes(new_nodes)
 
 
 def find_neighbours_singles(groups: defaultdict) -> tuple[list, list]:

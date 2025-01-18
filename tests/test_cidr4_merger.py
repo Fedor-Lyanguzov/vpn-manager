@@ -296,8 +296,29 @@ def test_find_neighbours_singles(
     )
 
 
-def test_merge_neighbors():
-    assert True
+def test_merge_neighbors__only_neighbours(nodes_only_neighbours):
+    new_nodes = merge_neighbors(
+        nodes_only_neighbours,
+        [
+            ((0, 2, 12, 0), (1073741824, 2, 3, 0)),
+            ((2147483648, 2, 1, 2147483648), (3221225472, 2, 2, 2147483648)),
+        ],
+    )
+    assert new_nodes == [
+        (0, 1, 15, 0),
+        (2147483648, 1, 3, 0),
+    ]
+
+
+def test_merge_neighbors__neighbours_n_singles(nodes_with_neighbours_n_singles):
+    new_nodes = merge_neighbors(
+        nodes_with_neighbours_n_singles,
+        [((0, 2, 12, 0), (1073741824, 2, 3, 0))],
+    )
+    assert new_nodes == [
+        (0, 1, 15, 0),
+        (2147483648, 2, 1, 2147483648),
+    ]
 
 
 # def test_merge_nodes_recursion():
