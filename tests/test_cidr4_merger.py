@@ -13,12 +13,14 @@ from cidr4_merger import (
     make_groups,
     make_parent,
     merge_neighbors,
+    merge_nodes_cycle,
     merge_nodes_deprecated,
     merge_nodes_recursion,
-    merge_nodes_cycle,
     reduce_nodes,
     sort_nodes,
 )
+
+from .cidr4_data_for_tests import test_cidr4_data
 
 
 def test_true():
@@ -378,3 +380,16 @@ def test_merge_nodes_cycle():
         )
     assert exc_info.type is Cidr4MergerError
     assert str(exc_info.value) == "The top of the tree has no parent!"
+
+
+def test_merge_nodes_recursion_vs_cycle():
+    required_len = 20
+
+    test_data = test_cidr4_data.strip().splitlines()
+    test_nodes = list(map(cidr4_to_node, test_data))
+    test_nodes = sort_nodes(test_nodes)
+
+    merged_nodes_recursion = merge_nodes_recursion(test_nodes, required_len)
+    merged_nodes_cycle = merge_nodes_cycle(test_nodes, required_len)
+
+    assert merged_nodes_recursion == merged_nodes_cycle
