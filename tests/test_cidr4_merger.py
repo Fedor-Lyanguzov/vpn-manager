@@ -230,15 +230,54 @@ def test_make_groups():
     }
 
 
-def test_find_neighbours_singles():
-    nodes_with_neighbours = [
+@pytest.fixture
+def nodes_only_neighbours():
+    return [
         (0, 2, 12, 0),
         (1073741824, 2, 3, 0),
         (2147483648, 2, 1, 2147483648),
         (3221225472, 2, 2, 2147483648),
     ]
-    groups_with_neighbours = make_groups(nodes_with_neighbours)
-    assert find_neighbours_singles(groups_with_neighbours) == (
+
+
+@pytest.fixture
+def nodes_only_singles():
+    return [
+        (0, 2, 12, 0),
+        (2147483648, 2, 1, 2147483648),
+    ]
+
+
+@pytest.fixture
+def nodes_with_neighbours_n_singles():
+    return [
+        (0, 2, 12, 0),
+        (1073741824, 2, 3, 0),
+        (2147483648, 2, 1, 2147483648),
+    ]
+
+
+@pytest.fixture
+def groups_only_neighbours(nodes_only_neighbours):
+    return make_groups(nodes_only_neighbours)
+
+
+@pytest.fixture
+def groups_only_singles(nodes_only_singles):
+    return make_groups(nodes_only_singles)
+
+
+@pytest.fixture
+def groups_with_neighbours_n_singles(nodes_with_neighbours_n_singles):
+    return make_groups(nodes_with_neighbours_n_singles)
+
+
+def test_find_neighbours_singles(
+    groups_only_neighbours,
+    groups_only_singles,
+    groups_with_neighbours_n_singles,
+):
+    assert find_neighbours_singles(groups_only_neighbours) == (
         [
             ((0, 2, 12, 0), (1073741824, 2, 3, 0)),
             ((2147483648, 2, 1, 2147483648), (3221225472, 2, 2, 2147483648)),
@@ -246,26 +285,19 @@ def test_find_neighbours_singles():
         [],
     )
 
-    nodes_with_singles = [
-        (0, 2, 12, 0),
-        (2147483648, 2, 1, 2147483648),
-    ]
-    groups_with_singles = make_groups(nodes_with_singles)
-    assert find_neighbours_singles(groups_with_singles) == (
+    assert find_neighbours_singles(groups_only_singles) == (
         [],
         [(0, 2, 12, 0), (2147483648, 2, 1, 2147483648)],
     )
 
-    nodes_with_neighbours_n_singles = [
-        (0, 2, 12, 0),
-        (1073741824, 2, 3, 0),
-        (2147483648, 2, 1, 2147483648),
-    ]
-    groups_with_singles = make_groups(nodes_with_neighbours_n_singles)
-    assert find_neighbours_singles(groups_with_singles) == (
+    assert find_neighbours_singles(groups_with_neighbours_n_singles) == (
         [((0, 2, 12, 0), (1073741824, 2, 3, 0))],
         [(2147483648, 2, 1, 2147483648)],
     )
+
+
+def test_merge_neighbors():
+    assert True
 
 
 # def test_merge_nodes_recursion():
