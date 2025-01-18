@@ -1,13 +1,16 @@
+import pytest
+
 from cidr4_merger import (
+    Cidr4MergerError,
     answer,
     cidr4_to_node,
     get_group_with_max_mask_len,
     get_net_addr,
-    get_parent,
-    get_parent_mask,
+    get_parent_ip,
     have_same_parent,
+    make_cidr4,
+    make_parent,
     merge_nodes,
-    node_to_cidr4,
     reduce_nodes,
     sort_nodes,
 )
@@ -35,13 +38,28 @@ ip_d = int(bin_d, 2)
 
 
 def test_cidr4_to_node():
-    assert cidr4_to_node("4.78.139.0/24") == (72256256, 24, 0)
-    assert cidr4_to_node("0.0.0.0/32") == (0, 32, 0)
+    assert cidr4_to_node("4.78.139.0/24") == (72256256, 24, 0, 72256000)
+    assert cidr4_to_node("0.0.0.0/32") == (0, 32, 0, 0)
+
+    assert cidr4_to_node("23.234.30.0/24") == (401219072, 24, 0, 401219072)
+    assert cidr4_to_node("172.217.0.0/19") == (2899902464, 19, 0, 2899902464)
+    assert cidr4_to_node("23.225.141.0/24") == (400657664, 24, 0, 400657408)
+    assert cidr4_to_node("31.13.94.0/23") == (520969728, 23, 0, 520969216)
+
+    assert cidr4_to_node("0.0.0.0/2") == (0, 2, 0, 0)
+    assert cidr4_to_node("64.0.0.0/2") == (1073741824, 2, 0, 0)
+    assert cidr4_to_node("128.0.0.0/2") == (2147483648, 2, 0, 2147483648)
+    assert cidr4_to_node("192.0.0.0/2") == (3221225472, 2, 0, 2147483648)
 
 
-def test_node_to_cidr4():
-    assert node_to_cidr4(72256256, 24) == "4.78.139.0/24"
-    assert node_to_cidr4(0, 32) == "0.0.0.0/32"
+def test_make_cidr4():
+    assert make_cidr4(72256256, 24) == "4.78.139.0/24"
+    assert make_cidr4(0, 32) == "0.0.0.0/32"
+
+    assert make_cidr4(401219072, 24) == "23.234.30.0/24"
+    assert make_cidr4(2899902464, 19) == "172.217.0.0/19"
+    assert make_cidr4(400657664, 24) == "23.225.141.0/24"
+    assert make_cidr4(520969728, 23) == "31.13.94.0/23"
 
 
 def test_get_net_addr():
@@ -52,15 +70,19 @@ def test_get_net_addr():
 
 
 def test_get_parent_mask():
-    assert get_parent_mask(ip_a, 6) == ip_c
-    assert get_parent_mask(ip_b, 6) == ip_c
-    assert get_parent_mask(0, 1) == 0
-    assert get_parent_mask(0, 0) is None
+    assert get_parent_ip(ip_a, 6) == ip_c
+    assert get_parent_ip(ip_b, 6) == ip_c
+    assert get_parent_ip(0, 1) == 0
+
+    with pytest.raises(Exception) as exc_info:
+        get_parent_ip(0, 0)
+    assert str(exc_info.value) == "The top of the tree has no parent!"
+    assert exc_info.type is Cidr4MergerError
 
 
 def test_have_same_parent():
-    assert have_same_parent(ip_a, 6, ip_b, 6) is True
-    assert have_same_parent(ip_a, 6, ip_b, 5) is False
+    assert have_same_parent(ip_c, 6, ip_c, 6) is True
+    assert have_same_parent(ip_c, 6, ip_c, 5) is False
     assert have_same_parent(ip_a, 6, ip_d, 6) is False
     assert have_same_parent(ip_a, 6, 0, 1) is False
     assert have_same_parent(ip_a, 6, 0, 0) is False
@@ -69,123 +91,131 @@ def test_have_same_parent():
 def test_sort_nodes():
     assert sort_nodes(
         [
-            (401219072, 24, 0),
-            (2899902464, 19, 0),
-            (400657664, 24, 0),
-            (520969728, 23, 0),
+            (401219072, 24, 0, 401219072),
+            (2899902464, 19, 0, 2899902464),
+            (400657664, 24, 0, 400657408),
+            (520969728, 23, 0, 520969216),
         ]
     ) == [
-        (2899902464, 19, 0),
-        (520969728, 23, 0),
-        (400657664, 24, 0),
-        (401219072, 24, 0),
+        (2899902464, 19, 0, 2899902464),
+        (520969728, 23, 0, 520969216),
+        (400657664, 24, 0, 400657408),
+        (401219072, 24, 0, 401219072),
     ]
 
 
 def test_get_group_with_max_mask_len():
     assert get_group_with_max_mask_len(
         [
-            (2899902464, 19, 0),
-            (520969728, 23, 0),
-            (400657664, 24, 0),
-            (401219072, 24, 0),
+            (2899902464, 19, 0, 2899902464),
+            (520969728, 23, 0, 520969216),
+            (400657664, 24, 0, 400657408),
+            (401219072, 24, 0, 401219072),
         ]
-    ) == [(400657664, 24, 0), (401219072, 24, 0)]
+    ) == [(400657664, 24, 0, 400657408), (401219072, 24, 0, 401219072)]
 
     assert get_group_with_max_mask_len(
         [
-            (401219072, 24, 0),
-            (2899902464, 19, 0),
-            (520969728, 23, 0),
+            (401219072, 24, 0, 401219072),
+            (2899902464, 19, 0, 2899902464),
+            (520969728, 23, 0, 520969216),
         ]
-    ) == [(401219072, 24, 0)]
+    ) == [(401219072, 24, 0, 401219072)]
 
 
-def test_get_parent():
-    assert get_parent((0, 2, 12), (1073741824, 2, 3)) == (0, 1, 15)
-    assert get_parent((2147483648, 2, 1), (3221225472, 2, 2)) == (2147483648, 1, 3)
+def test_make_parent():
+    assert make_parent((0, 2, 12, 0), (1073741824, 2, 3, 0)) == (0, 1, 15, 0)
+    assert make_parent(
+        (2147483648, 2, 1, 2147483648), (3221225472, 2, 2, 2147483648)
+    ) == (2147483648, 1, 3, 0)
+
+    with pytest.raises(Exception) as exc_info:
+        make_parent((0, 2, 12, 0), (3221225472, 2, 2, 2147483648))
+    assert str(exc_info.value) == "Nodes must be neighbors!"
+    assert exc_info.type is Cidr4MergerError
 
 
 def test_reduce_nodes():
     assert reduce_nodes(
         [
-            (0, 2, 12),
-            (1073741824, 2, 3),
+            (0, 2, 12, 0),
+            (1073741824, 2, 3, 0),
         ]
     ) == [
-        (0, 1, 15),
+        (0, 1, 15, 0),
     ]
 
     assert reduce_nodes(
         [
-            (0, 2, 12),
-            (1073741824, 2, 3),
-            (2147483648, 2, 1),
-            (3221225472, 2, 2),
+            (0, 2, 12, 0),
+            (1073741824, 2, 3, 0),
+            (2147483648, 2, 1, 2147483648),
+            (3221225472, 2, 2, 2147483648),
         ]
     ) == [
-        (2147483648, 1, 3),
-        (0, 2, 12),
-        (1073741824, 2, 3),
+        (2147483648, 1, 3, 0),
+        (0, 2, 12, 0),
+        (1073741824, 2, 3, 0),
     ]
 
     assert reduce_nodes(
         [
-            (0, 2, 12),
-            (2147483648, 1, 0),
+            (0, 2, 12, 0),
+            (2147483648, 1, 0, 0),
         ]
     ) == [
-        (0, 1, 12 + 2**30),
-        (2147483648, 1, 0),
+        (0, 1, 12 + 2**30, 0),
+        (2147483648, 1, 0, 0),
     ]
 
-    assert reduce_nodes(
-        [
-            (0, 1, 12 + 2**30),
-            (2147483648, 1, 0),
-        ]
-    ) == [
-        (0, 0, 12 + 2**30),
-    ]
+    with pytest.raises(Exception) as exc_info:
+        reduce_nodes(
+            [
+                (0, 1, 12 + 2**30, 0),
+                (2147483648, 1, 0, 0),
+            ]
+        )
+    assert exc_info.type is Cidr4MergerError
+    assert str(exc_info.value) == "The top of the tree has no parent!"
 
 
 def test_merge_nodes():
     assert merge_nodes(
         [
-            (0, 2, 12),
-            (2147483648, 2, 1),
-            (3221225472, 2, 2),
+            (0, 2, 12, 0),
+            (2147483648, 2, 1, 2147483648),
+            (3221225472, 2, 2, 2147483648),
         ],
         2,
     ) == [
-        (2147483648, 1, 3),
-        (0, 2, 12),
+        (2147483648, 1, 3, 0),
+        (0, 2, 12, 0),
     ]
 
-    assert merge_nodes(
-        [
-            (0, 2, 12),
-            (2147483648, 2, 1),
-            (3221225472, 2, 2),
-        ],
-        1,
-    ) == [(0, 0, 15 + 2**30)]
+    with pytest.raises(Exception) as exc_info:
+        merge_nodes(
+            [
+                (0, 2, 12, 0),
+                (2147483648, 2, 1, 2147483648),
+                (3221225472, 2, 2, 2147483648),
+            ],
+            1,
+        )
+    assert exc_info.type is Cidr4MergerError
+    assert str(exc_info.value) == "The top of the tree has no parent!"
 
 
 def test_answer():
     assert answer(
         [
-            (0, 2, 0),
-            (2147483648, 2, 0),
-            (3221225472, 2, 12),
+            (0, 2, 12, 0),
+            (2147483648, 2, 1, 2147483648),
+            (3221225472, 2, 2, 2147483648),
         ],
         2,
-    ) == (["128.0.0.0/1", "0.0.0.0/2"], 12)
+    ) == (["128.0.0.0/1", "0.0.0.0/2"], 15)
 
-    assert answer(
-        [
-            (0, 2, 0),
-            (2147483648, 2, 0),
-        ],
-        1,
-    ) == (["0.0.0.0/0"], 2**31)
+    with pytest.raises(Exception) as exc_info:
+        answer([(0, 2, 0, 0), (2147483648, 2, 0, 2147483648)], 1)
+    assert exc_info.type is Cidr4MergerError
+    assert str(exc_info.value) == "The top of the tree has no parent!"
