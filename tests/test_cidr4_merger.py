@@ -15,6 +15,7 @@ from cidr4_merger import (
     merge_neighbors,
     merge_nodes_deprecated,
     merge_nodes_recursion,
+    merge_nodes_cycle,
     reduce_nodes,
     sort_nodes,
 )
@@ -342,6 +343,32 @@ def test_merge_nodes_recursion():
 
     with pytest.raises(Exception) as exc_info:
         merge_nodes_recursion(
+            [
+                (0, 2, 12, 0),
+                (2147483648, 2, 1, 2147483648),
+                (3221225472, 2, 2, 2147483648),
+            ],
+            1,
+        )
+    assert exc_info.type is Cidr4MergerError
+    assert str(exc_info.value) == "The top of the tree has no parent!"
+
+
+def test_merge_nodes_cycle():
+    assert merge_nodes_cycle(
+        [
+            (0, 2, 12, 0),
+            (2147483648, 2, 1, 2147483648),
+            (3221225472, 2, 2, 2147483648),
+        ],
+        2,
+    ) == [
+        (2147483648, 1, 3, 0),
+        (0, 2, 12, 0),
+    ]
+
+    with pytest.raises(Exception) as exc_info:
+        merge_nodes_cycle(
             [
                 (0, 2, 12, 0),
                 (2147483648, 2, 1, 2147483648),

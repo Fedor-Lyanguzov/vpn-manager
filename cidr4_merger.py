@@ -183,6 +183,20 @@ def merge_nodes_recursion(nodes: list[Node], required_len: int) -> list[Node]:
     return merge_nodes_recursion(new_nodes, required_len)
 
 
+def merge_nodes_cycle(nodes_to_merge: list[Node], required_len: int) -> list[Node]:
+    nodes = [x for x in nodes_to_merge]
+    while not len(nodes) <= required_len:
+        groups = make_groups(nodes)
+        neighbours, singles = find_neighbours_singles(groups)
+        if neighbours:
+            nodes = merge_neighbors(nodes, neighbours)
+        elif singles:
+            nodes = lift_lonely_node(nodes, singles)
+        else:
+            raise Cidr4MergerError("Invalid case!")
+    return nodes
+
+
 def main():
     file = "cidr4.txt"
     required_len = 20
@@ -191,8 +205,9 @@ def main():
     nodes = list(map(cidr4_to_node, data))
 
     nodes = sort_nodes(nodes)
-    # merged_nodes = merge_nodes(nodes, required_len)
-    merged_nodes = merge_nodes_recursion(nodes, required_len)
+    # merged_nodes = merge_nodes_deprecated(nodes, required_len)
+    # merged_nodes = merge_nodes_recursion(nodes, required_len)
+    merged_nodes = merge_nodes_cycle(nodes, required_len)
 
     cidr4s = []
     sum_added_ips = 0
