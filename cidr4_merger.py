@@ -14,9 +14,9 @@ def get_data(input_file):
 
 
 def cidr4_to_node(cidr4: str) -> Node:
-    ip_str, mask_len = cidr4.strip().split("/")
+    ip_address, mask_len = cidr4.strip().split("/")
     mask_len = int(mask_len)
-    a, b, c, d = list(map(int, ip_str.split(".")))
+    a, b, c, d = list(map(int, ip_address.split(".")))
     ip = a * 256**3 + b * 256**2 + c * 256**1 + d * 256**0
     added_ips_number = 0
     parent_ip = get_parent_ip(ip, mask_len)
@@ -109,8 +109,8 @@ def merge_nodes(nodes: list[Node], required_len: int) -> list[Node]:
 
 def make_cidr4(ip, mask_len) -> str:
     lst = [str(ip >> (i << 3) & 0xFF) for i in reversed(range(4))]
-    ip_str = ".".join(lst)
-    return f"{ip_str}/{mask_len}"
+    ip_address = ".".join(lst)
+    return f"{ip_address}/{mask_len}"
 
 
 def answer(nodes: list[Node], required_len: int) -> tuple[list[str], int]:
