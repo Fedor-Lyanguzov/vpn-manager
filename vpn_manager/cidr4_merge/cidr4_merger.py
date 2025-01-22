@@ -32,7 +32,7 @@ def find_parent(a: Node, b: Node) -> Node:
     mask = ((1 << mask_len) - 1) << (32 - mask_len)
     while ip_a & mask != ip_b & mask:
         mask_len -= 1
-        mask = ((1 << mask_len) - 1) << (32 - mask_len)
+        mask = (mask << 1) & ((1 << 32) - 1)
     ip = ip_a & mask
     parent_node = ip, mask_len
     if parent_node == a or parent_node == b:
