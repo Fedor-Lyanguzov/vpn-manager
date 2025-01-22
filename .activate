@@ -1,0 +1,7 @@
+
+alias venv='source .venv/Scripts/activate'
+alias check='flake8 vpn_manager'
+alias format='black vpn_manager'
+alias test='pytest'
+
+venv
