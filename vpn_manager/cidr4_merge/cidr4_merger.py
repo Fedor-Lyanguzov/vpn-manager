@@ -68,8 +68,7 @@ def main():
     nodes = list(map(cidr4_to_node, data))
 
     nodes = sort_nodes(nodes)
-    # merged_nodes = merge_nodes_recursion(nodes, required_len)
-    merged_nodes = merge_nodes_cycle(nodes, required_len)
+    merged_nodes = merge_nodes(nodes, required_len)
 
     cidr4s = []
     sum_added_ips = 0
