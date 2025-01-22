@@ -10,8 +10,6 @@ from cidr4_merger import (
     sort_nodes,
 )
 
-from .cidr4_data_for_tests import test_cidr4_data
-
 
 def test_true():
     assert True
