@@ -25,21 +25,21 @@ def sort_nodes(nodes: list[Node]) -> list[Node]:
     return sorted(nodes)
 
 
-def get_net_addr(ip: int, mask_len: int) -> int:
+def find_parent(a: Node, b: Node) -> Node:
+    ip_a, mask_len_a = a
+    ip_b, mask_len_b = b
+    mask_len = min(mask_len_a, mask_len_b)
     mask = ((1 << mask_len) - 1) << (32 - mask_len)
-    net_addr = ip & mask
-    return net_addr
-
-
-def get_parent_ip(ip: int, mask_len: int) -> int:
-    if mask_len == 0:
-        raise Cidr4MergerError("The top of the tree has no parent!")
-    return get_net_addr(ip, mask_len - 1)
-
-
-def make_parent(a: Node, b: Node) -> Node:
-    ip, mask_len = 0, 0
-    return ip, mask_len
+    while ip_a & mask != ip_b & mask:
+        mask_len -= 1
+        mask = ((1 << mask_len) - 1) << (32 - mask_len)
+    ip = ip_a & mask
+    parent_node = ip, mask_len
+    if parent_node == a or parent_node == b:
+        raise Cidr4MergerError(
+            f"Error! Trying to find common parent of network and subnet! {parent_node=}, {a=}, {b=}."
+        )
+    return parent_node
 
 
 def make_cidr4(ip, mask_len) -> str:
