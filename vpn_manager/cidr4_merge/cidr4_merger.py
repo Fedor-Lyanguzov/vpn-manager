@@ -1,6 +1,6 @@
 import cProfile
 
-Node = tuple[int, int, int]
+Node = tuple[int, int]
 
 
 class Cidr4MergerError(Exception):
@@ -15,11 +15,10 @@ def get_data(input_file):
 
 def cidr4_to_node(cidr4: str) -> Node:
     ip_address, mask_len = cidr4.strip().split("/")
-    mask_len = int(mask_len)
     a, b, c, d = list(map(int, ip_address.split(".")))
     ip = a * 256**3 + b * 256**2 + c * 256**1 + d * 256**0
-    added_ips_number = 0
-    return ip, mask_len, added_ips_number
+    mask_len = int(mask_len)
+    return ip, mask_len
 
 
 def sort_nodes(nodes: list[Node]) -> list[Node]:
@@ -39,8 +38,8 @@ def get_parent_ip(ip: int, mask_len: int) -> int:
 
 
 def make_parent(a: Node, b: Node) -> Node:
-    ip, mask_len, added_ips_number = None
-    return ip, mask_len, added_ips_number
+    ip, mask_len = 0, 0
+    return ip, mask_len
 
 
 def make_cidr4(ip, mask_len) -> str:
