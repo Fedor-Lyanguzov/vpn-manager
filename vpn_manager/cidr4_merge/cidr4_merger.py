@@ -48,8 +48,11 @@ def make_cidr4(ip, mask_len) -> str:
     return f"{ip_address}/{mask_len}"
 
 
-def merge_nodes(nodes_to_merge: list[Node], required_len: int) -> list[Node]:
+def merge_nodes(
+    nodes_to_merge: list[Node], required_len: int
+) -> tuple[list[Node], int]:
     nodes = [x for x in nodes_to_merge]
+    sum_dip = 0
     # Преобразовать список нод в список туплов: родитель (ip, mask len), кол-во добавляемых адресов d_ip
     # найти подходящего родителя (с минимальным значением d_ip) и индекс
     # затем мержить два узла:
@@ -58,7 +61,7 @@ def merge_nodes(nodes_to_merge: list[Node], required_len: int) -> list[Node]:
     # - добавить родителя перед элементом с индексом i
     # повторить пока не достигнем нужного кол-ва узлов
 
-    return nodes
+    return nodes, sum_dip
 
 
 def main():
@@ -69,18 +72,14 @@ def main():
     nodes = list(map(cidr4_to_node, data))
 
     nodes = sort_nodes(nodes)
-    merged_nodes = merge_nodes(nodes, required_len)
+    merged_nodes, sum_dip = merge_nodes(nodes, required_len)
 
-    cidr4s = []
-    sum_added_ips = 0
-    for ip_value, mask_len, added_ips, _ in merged_nodes:
-        cidr4s.append(make_cidr4(ip_value, mask_len))
-        sum_added_ips += added_ips
+    cidr4s = [make_cidr4(ip, mask_len) for ip, mask_len in merged_nodes]
 
     cidr4s_str = "\n".join(cidr4s)
     print(
         f"Исходный список длины {len(nodes)} сокращен до {len(cidr4s)}\n"
-        f"Количество добавленных ip адресов: {sum_added_ips:_}\n"
+        f"Количество добавленных ip адресов: {sum_dip:_}\n"
         f"Список объединенных cidr4:\n"
         f"{cidr4s_str}"
     )
