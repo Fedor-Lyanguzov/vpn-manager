@@ -6,6 +6,7 @@ from vpn_manager.cidr4_merge.cidr4_merger import (
     cidr4_to_node,
     find_parent,
     make_cidr4,
+    merge_two_nodes,
     sort_nodes,
 )
 
@@ -88,13 +89,20 @@ def test_find_parent__with_exception():
 
 
 def test_calc_dip():
+    assert calc_dip(32, 32) == 0
+    assert calc_dip(32, 31) == 2
+    assert calc_dip(32, 30) == 4
+    assert calc_dip(31, 30) == 2
+    assert calc_dip(30, 29) == 4
+    assert calc_dip(29, 31) == 6
     assert calc_dip(26, 26) == 0
+    assert calc_dip(3, 2) == 2**30 - 2**29
+    assert calc_dip(3, 1) == 2**31 - 2**29
 
-    assert calc_dip(26, 27) == 67108864
-    assert calc_dip(27, 26) == 67108864
 
-    assert calc_dip(26, 28) == 201326592
-    assert calc_dip(28, 26) == 201326592
-
-    assert calc_dip(26, 29) == 469762048
-    assert calc_dip(29, 26) == 469762048
+def test_merge_two_nodes():
+    assert merge_two_nodes((0, 32), (1, 32)) == ((0, 31), 0)
+    assert merge_two_nodes((0, 32), (2, 32)) == ((0, 30), 4)
+    assert merge_two_nodes((0, 32), (5, 32)) == ((0, 29), 8)
+    assert merge_two_nodes((3, 32), (4, 32)) == ((0, 29), 8)
+    assert merge_two_nodes((0, 32), (4, 30)) == ((0, 29), 4)

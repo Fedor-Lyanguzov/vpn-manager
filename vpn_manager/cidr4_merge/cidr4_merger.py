@@ -43,12 +43,23 @@ def find_parent(a: Node, b: Node) -> Node:
 
 
 def calc_dip(mask_len_a: int, mask_len_b: int) -> int:
-    dip = 0
-    len_min, len_max = sorted((mask_len_a, mask_len_b))
-    while len_min < len_max:
-        dip += 1 << len_min
-        len_min += 1
+    # a = 2 ** (32 - mask_len_a) if mask_len_a != 32 else 0
+    # b = 2 ** (32 - mask_len_b) if mask_len_b != 32 else 0
+    a = 1 << (32 - mask_len_a) if mask_len_a != 32 else 0
+    b = 1 << (32 - mask_len_b) if mask_len_b != 32 else 0
+    dip = abs(a - b)
     return dip
+
+
+def merge_two_nodes(node_a: Node, node_b: Node) -> tuple[Node, int]:
+    ip_a, mask_len_a = node_a
+    ip_b, mask_len_b = node_b
+    parent_node = find_parent(node_a, node_b)
+    _, mask_len_p = parent_node
+    dip_a = calc_dip(mask_len_a, mask_len_p + 1)
+    dip_b = calc_dip(mask_len_b, mask_len_p + 1)
+    dip = dip_a + dip_b
+    return parent_node, dip
 
 
 def make_cidr4(ip, mask_len) -> str:
