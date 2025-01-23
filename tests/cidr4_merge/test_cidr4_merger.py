@@ -2,6 +2,7 @@ import pytest
 
 from vpn_manager.cidr4_merge.cidr4_merger import (
     Cidr4MergerError,
+    calc_dip,
     cidr4_to_node,
     find_parent,
     make_cidr4,
@@ -84,3 +85,9 @@ def test_find_parent__with_exception():
         == "Error! Trying to find common parent of network and subnet! parent_node=(0, 0), a=(0, 0), b=(3221225472, 2)."
     )
     assert exc_info.type is Cidr4MergerError
+
+
+def test_calc_dip():
+    assert calc_dip(26, 27) == 67108864
+    assert calc_dip(26, 28) == 201326592
+    assert calc_dip(26, 29) == 469762048

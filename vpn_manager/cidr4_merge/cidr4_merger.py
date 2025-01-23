@@ -42,6 +42,14 @@ def find_parent(a: Node, b: Node) -> Node:
     return parent_node
 
 
+def calc_dip(mask_len_a: int, mask_len_b: int) -> int:
+    dip = 0
+    while mask_len_a < mask_len_b:
+        dip += 1 << mask_len_a
+        mask_len_a += 1
+    return dip
+
+
 def make_cidr4(ip, mask_len) -> str:
     lst = [str(ip >> (i << 3) & 0xFF) for i in reversed(range(4))]
     ip_address = ".".join(lst)
