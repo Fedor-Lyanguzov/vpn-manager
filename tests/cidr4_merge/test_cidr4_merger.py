@@ -88,6 +88,13 @@ def test_find_parent__with_exception():
 
 
 def test_calc_dip():
+    assert calc_dip(26, 26) == 0
+
     assert calc_dip(26, 27) == 67108864
+    assert calc_dip(27, 26) == 67108864
+
     assert calc_dip(26, 28) == 201326592
+    assert calc_dip(28, 26) == 201326592
+
     assert calc_dip(26, 29) == 469762048
+    assert calc_dip(29, 26) == 469762048

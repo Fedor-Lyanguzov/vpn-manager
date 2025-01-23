@@ -44,9 +44,10 @@ def find_parent(a: Node, b: Node) -> Node:
 
 def calc_dip(mask_len_a: int, mask_len_b: int) -> int:
     dip = 0
-    while mask_len_a < mask_len_b:
-        dip += 1 << mask_len_a
-        mask_len_a += 1
+    len_min, len_max = sorted((mask_len_a, mask_len_b))
+    while len_min < len_max:
+        dip += 1 << len_min
+        len_min += 1
     return dip
 
 
