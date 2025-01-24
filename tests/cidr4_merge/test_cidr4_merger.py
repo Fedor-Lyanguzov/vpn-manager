@@ -4,6 +4,7 @@ from vpn_manager.cidr4_merge.cidr4_merger import (
     Cidr4MergerError,
     calc_dip,
     cidr4_to_node,
+    find_neighbors,
     find_parent,
     make_cidr4,
     merge_nodes,
@@ -94,6 +95,31 @@ def test_merge_two_nodes():
     assert merge_two_nodes((0, 32), (6, 31)) == ((0, 29), 5)
 
 
+def test_find_neighbors():
+    assert find_neighbors([(0, 32), (2, 32), (4, 32), (6, 32)]) == []
+    assert find_neighbors([(0, 32), (1, 32)]) == [(0, (0, 32), (1, 32))]
+    assert find_neighbors(
+        [
+            (0, 32),
+            (1, 32),
+            (6, 32),
+            (7, 32),
+        ]
+    ) == [
+        (0, (0, 32), (1, 32)),
+        (2, (6, 32), (7, 32)),
+    ]
+    assert find_neighbors(
+        [
+            (0, 32),
+            (1, 32),
+            (6, 32),
+        ]
+    ) == [
+        (0, (0, 32), (1, 32)),
+    ]
+
+
 def test_merge_nodes():
     assert merge_nodes(
         [
@@ -104,7 +130,6 @@ def test_merge_nodes():
         2,
     ) == ([(0, 30), (4, 32)], 2)
 
-    # т.е. сейчас алгоритм работает так, что он может оставить соседей
     assert merge_nodes(
         [
             (0, 32),
@@ -113,7 +138,7 @@ def test_merge_nodes():
             (7, 32),
         ],
         2,
-    ) == ([(0, 30), (4, 30)], 4)
+    ) == ([(0, 29)], 4)
 
     assert merge_nodes(
         [

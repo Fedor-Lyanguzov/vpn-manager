@@ -55,12 +55,22 @@ def merge_nodes(nodes: list[Node], required_len: int) -> tuple[list[Node], int]:
         nodes = nodes[:idx] + [parent_node] + nodes[idx + 2 :]
         sum_dip += dip
 
-        # for i, (a, b) in enumerate(zip(nodes, nodes[1:])):
-        #     parent_node, dip = merge_two_nodes(a, b)
-        #     assert parent_node != a
-        #     assert parent_node != b
+    while neighbors := find_neighbors(nodes):
+        idx, a, b = neighbors[0]
+        parent_node, dip = merge_two_nodes(a, b)
+        nodes = nodes[:idx] + [parent_node] + nodes[idx + 2 :]
+        sum_dip += dip
 
     return nodes, sum_dip
+
+
+def find_neighbors(nodes: list[Node]) -> list[tuple[int, Node, Node]]:
+    neighbors = []
+    for i, (a, b) in enumerate(zip(nodes, nodes[1:])):
+        parent_node, dip = merge_two_nodes(a, b)
+        if parent_node[1] + 1 == a[1] == b[1]:
+            neighbors.append((i, a, b))
+    return neighbors
 
 
 def main():
@@ -69,7 +79,7 @@ def main():
     nodes = sorted(map(cidr4_to_node, data))
     merged_nodes, sum_dip = merge_nodes(nodes, required_len)
     cidr4s = [make_cidr4(ip, mask_len) for ip, mask_len in merged_nodes]
-    print(sorted(cidr4s), sum_dip, sep="\n")
+    print(cidr4s, sum_dip, sep="\n")
 
 
 if __name__ == "__main__":
