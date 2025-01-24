@@ -27,16 +27,14 @@ def find_parent(a: Node, b: Node) -> Node:
 
 
 def calc_dip(mask_len_a: int, mask_len_b: int, mask_len_p: int) -> int:
-    mask_len = mask_len_p + 1
-    dip_a = 0
-    while mask_len_a > mask_len:
-        dip_a += 2 ** (32 - mask_len_a)
-        mask_len_a -= 1
-    dip_b = 0
-    while mask_len_b > mask_len:
-        dip_b += 2 ** (32 - mask_len_b)
-        mask_len_b -= 1
-    return dip_a + dip_b
+    def dip(mla, mlp):
+        m = mlp + 1
+        res = 1 << (mla - m)
+        res -= 1
+        res <<= 32 - mla
+        return res
+
+    return dip(mask_len_a, mask_len_p) + dip(mask_len_b, mask_len_p)
 
 
 def merge_two_nodes(node_a: Node, node_b: Node) -> tuple[Node, int]:
