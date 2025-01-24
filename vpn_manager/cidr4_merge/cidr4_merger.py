@@ -38,11 +38,8 @@ def calc_dip(mask_len_a: int, mask_len_b: int, mask_len_p: int) -> int:
 
 
 def merge_two_nodes(node_a: Node, node_b: Node) -> tuple[Node, int]:
-    ip_a, mask_len_a = node_a
-    ip_b, mask_len_b = node_b
     parent_node = find_parent(node_a, node_b)
-    _, mask_len_p = parent_node
-    dip = calc_dip(mask_len_a, mask_len_b, mask_len_p)
+    dip = calc_dip(node_a[1], node_b[1], parent_node[1])
     return parent_node, dip
 
 
