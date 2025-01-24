@@ -9,10 +9,6 @@ class Cidr4MergerError(Exception):
     pass
 
 
-def sort_nodes(nodes: list[Node]) -> list[Node]:
-    return sorted(nodes)
-
-
 def find_parent(a: Node, b: Node) -> Node:
     ip_a, mask_len_a = a
     ip_b, mask_len_b = b
@@ -79,7 +75,7 @@ def main():
     data = get_data(file)
     nodes = list(map(cidr4_to_node, data))
 
-    nodes = sort_nodes(nodes)
+    nodes = sorted(nodes)
     merged_nodes, sum_dip = merge_nodes(nodes, required_len)
 
     cidr4s = [make_cidr4(ip, mask_len) for ip, mask_len in merged_nodes]
