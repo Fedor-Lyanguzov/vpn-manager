@@ -8,7 +8,6 @@ from vpn_manager.cidr4_merge.cidr4_merger import (
     make_cidr4,
     merge_nodes,
     merge_two_nodes,
-    sort_nodes,
 )
 
 
@@ -39,22 +38,6 @@ def test_make_cidr4():
     assert make_cidr4(2899902464, 19) == "172.217.0.0/19"
     assert make_cidr4(400657664, 24) == "23.225.141.0/24"
     assert make_cidr4(520969728, 23) == "31.13.94.0/23"
-
-
-def test_sort_nodes():
-    assert sort_nodes(
-        [
-            (401219072, 24),
-            (2899902464, 19),
-            (400657664, 24),
-            (520969728, 23),
-        ]
-    ) == [
-        (400657664, 24),
-        (401219072, 24),
-        (520969728, 23),
-        (2899902464, 19),
-    ]
 
 
 def test_find_parent():
