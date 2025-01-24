@@ -1,24 +1,12 @@
 import cProfile
 
+from .util import cidr4_to_node, get_data, make_cidr4
+
 Node = tuple[int, int]
 
 
 class Cidr4MergerError(Exception):
     pass
-
-
-def get_data(input_file):
-    with open(input_file, "r") as file:
-        data = file.read().splitlines()
-    return data
-
-
-def cidr4_to_node(cidr4: str) -> Node:
-    ip_address, mask_len = cidr4.strip().split("/")
-    a, b, c, d = list(map(int, ip_address.split(".")))
-    ip = a * 256**3 + b * 256**2 + c * 256**1 + d * 256**0
-    mask_len = int(mask_len)
-    return ip, mask_len
 
 
 def sort_nodes(nodes: list[Node]) -> list[Node]:
@@ -62,12 +50,6 @@ def merge_two_nodes(node_a: Node, node_b: Node) -> tuple[Node, int]:
     _, mask_len_p = parent_node
     dip = calc_dip(mask_len_a, mask_len_b, mask_len_p)
     return parent_node, dip
-
-
-def make_cidr4(ip, mask_len) -> str:
-    lst = [str(ip >> (i << 3) & 0xFF) for i in reversed(range(4))]
-    ip_address = ".".join(lst)
-    return f"{ip_address}/{mask_len}"
 
 
 def merge_nodes(nodes: list[Node], required_len: int) -> tuple[list[Node], int]:
