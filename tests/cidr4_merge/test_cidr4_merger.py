@@ -6,6 +6,7 @@ from vpn_manager.cidr4_merge.cidr4_merger import (
     cidr4_to_node,
     find_parent,
     make_cidr4,
+    merge_nodes,
     merge_two_nodes,
     sort_nodes,
 )
@@ -89,20 +90,54 @@ def test_find_parent__with_exception():
 
 
 def test_calc_dip():
-    assert calc_dip(32, 32) == 0
-    assert calc_dip(32, 31) == 2
-    assert calc_dip(32, 30) == 4
-    assert calc_dip(31, 30) == 2
-    assert calc_dip(30, 29) == 4
-    assert calc_dip(29, 31) == 6
-    assert calc_dip(26, 26) == 0
-    assert calc_dip(3, 2) == 2**30 - 2**29
-    assert calc_dip(3, 1) == 2**31 - 2**29
+    assert calc_dip(32, 32, 31) == 0
+    assert calc_dip(32, 32, 30) == 2
+    assert calc_dip(32, 32, 29) == 6
+    assert calc_dip(32, 30, 29) == 3
+    assert calc_dip(32, 31, 29) == 5
+    assert calc_dip(32, 31, 29) == 5
+
+    assert calc_dip(2, 2, 1) == 0
+    assert calc_dip(2, 2, 0) == 2**31
+    assert calc_dip(3, 3, 1) == 2**30
 
 
 def test_merge_two_nodes():
     assert merge_two_nodes((0, 32), (1, 32)) == ((0, 31), 0)
-    assert merge_two_nodes((0, 32), (2, 32)) == ((0, 30), 4)
-    assert merge_two_nodes((0, 32), (5, 32)) == ((0, 29), 8)
-    assert merge_two_nodes((3, 32), (4, 32)) == ((0, 29), 8)
-    assert merge_two_nodes((0, 32), (4, 30)) == ((0, 29), 4)
+    assert merge_two_nodes((0, 32), (2, 32)) == ((0, 30), 2)
+    assert merge_two_nodes((0, 32), (5, 32)) == ((0, 29), 6)
+    assert merge_two_nodes((3, 32), (4, 32)) == ((0, 29), 6)
+    assert merge_two_nodes((0, 32), (4, 30)) == ((0, 29), 3)
+    assert merge_two_nodes((0, 32), (6, 31)) == ((0, 29), 5)
+
+
+def test_merge_nodes():
+    assert merge_nodes(
+        [
+            (0, 32),
+            (3, 32),
+            (4, 32),
+        ],
+        2,
+    ) == ([(0, 30), (4, 32)], 2)
+
+    # т.е. сейчас алгоритм работает так, что он может оставить соседей
+    assert merge_nodes(
+        [
+            (0, 32),
+            (3, 32),
+            (4, 32),
+            (7, 32),
+        ],
+        2,
+    ) == ([(0, 30), (4, 30)], 4)
+
+    assert merge_nodes(
+        [
+            (0, 32),
+            (3, 32),
+            (4, 32),
+            (7, 32),
+        ],
+        1,
+    ) == ([(0, 29)], 4)

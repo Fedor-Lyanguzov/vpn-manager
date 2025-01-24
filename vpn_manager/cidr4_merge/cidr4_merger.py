@@ -42,13 +42,17 @@ def find_parent(a: Node, b: Node) -> Node:
     return parent_node
 
 
-def calc_dip(mask_len_a: int, mask_len_b: int) -> int:
-    # a = 2 ** (32 - mask_len_a) if mask_len_a != 32 else 0
-    # b = 2 ** (32 - mask_len_b) if mask_len_b != 32 else 0
-    a = 1 << (32 - mask_len_a) if mask_len_a != 32 else 0
-    b = 1 << (32 - mask_len_b) if mask_len_b != 32 else 0
-    dip = abs(a - b)
-    return dip
+def calc_dip(mask_len_a: int, mask_len_b: int, mask_len_p: int) -> int:
+    mask_len = mask_len_p + 1
+    dip_a = 0
+    while mask_len_a > mask_len:
+        dip_a += 2 ** (32 - mask_len_a)
+        mask_len_a -= 1
+    dip_b = 0
+    while mask_len_b > mask_len:
+        dip_b += 2 ** (32 - mask_len_b)
+        mask_len_b -= 1
+    return dip_a + dip_b
 
 
 def merge_two_nodes(node_a: Node, node_b: Node) -> tuple[Node, int]:
@@ -56,9 +60,7 @@ def merge_two_nodes(node_a: Node, node_b: Node) -> tuple[Node, int]:
     ip_b, mask_len_b = node_b
     parent_node = find_parent(node_a, node_b)
     _, mask_len_p = parent_node
-    dip_a = calc_dip(mask_len_a, mask_len_p + 1)
-    dip_b = calc_dip(mask_len_b, mask_len_p + 1)
-    dip = dip_a + dip_b
+    dip = calc_dip(mask_len_a, mask_len_b, mask_len_p)
     return parent_node, dip
 
 
@@ -68,18 +70,22 @@ def make_cidr4(ip, mask_len) -> str:
     return f"{ip_address}/{mask_len}"
 
 
-def merge_nodes(
-    nodes_to_merge: list[Node], required_len: int
-) -> tuple[list[Node], int]:
-    nodes = [x for x in nodes_to_merge]
+def merge_nodes(nodes: list[Node], required_len: int) -> tuple[list[Node], int]:
     sum_dip = 0
-    # Преобразовать список нод в список туплов: родитель (ip, mask len), кол-во добавляемых адресов d_ip
-    # найти подходящего родителя (с минимальным значением d_ip) и индекс
-    # затем мержить два узла:
-    # - т.е. удалить элемент с индексом i
-    # - еще раз удалить элемент с индексом i
-    # - добавить родителя перед элементом с индексом i
-    # повторить пока не достигнем нужного кол-ва узлов
+    while len(nodes) > required_len:
+        min_tuple = None, (None, float("inf"))
+        for i, (a, b) in enumerate(zip(nodes, nodes[1:])):
+            parent_node, dip = merge_two_nodes(a, b)
+            if dip < min_tuple[1][1]:
+                min_tuple = i, (parent_node, dip)
+        idx, (parent_node, dip) = min_tuple
+        nodes = nodes[:idx] + [parent_node] + nodes[idx + 2 :]
+        sum_dip += dip
+
+        # for i, (a, b) in enumerate(zip(nodes, nodes[1:])):
+        #     parent_node, dip = merge_two_nodes(a, b)
+        #     assert parent_node != a
+        #     assert parent_node != b
 
     return nodes, sum_dip
 
