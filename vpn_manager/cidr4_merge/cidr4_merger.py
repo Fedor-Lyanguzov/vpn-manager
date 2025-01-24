@@ -69,15 +69,10 @@ def merge_nodes(nodes: list[Node], required_len: int) -> tuple[list[Node], int]:
 
 
 def main():
-    file = "cidr4.txt"
     required_len = 20
-
-    data = get_data(file)
-    nodes = list(map(cidr4_to_node, data))
-
-    nodes = sorted(nodes)
+    data = get_data()
+    nodes = sorted(map(cidr4_to_node, data))
     merged_nodes, sum_dip = merge_nodes(nodes, required_len)
-
     cidr4s = [make_cidr4(ip, mask_len) for ip, mask_len in merged_nodes]
     print(sorted(cidr4s), sum_dip, sep="\n")
 
