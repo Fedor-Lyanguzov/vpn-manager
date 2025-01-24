@@ -101,14 +101,7 @@ def main():
     merged_nodes, sum_dip = merge_nodes(nodes, required_len)
 
     cidr4s = [make_cidr4(ip, mask_len) for ip, mask_len in merged_nodes]
-
-    cidr4s_str = "\n".join(cidr4s)
-    print(
-        f"Исходный список длины {len(nodes)} сокращен до {len(cidr4s)}\n"
-        f"Количество добавленных ip адресов: {sum_dip:_}\n"
-        f"Список объединенных cidr4:\n"
-        f"{cidr4s_str}"
-    )
+    print(sorted(cidr4s), sum_dip, sep="\n")
 
 
 if __name__ == "__main__":
