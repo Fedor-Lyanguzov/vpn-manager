@@ -46,12 +46,12 @@ def merge_two_nodes(node_a: Node, node_b: Node) -> tuple[Node, int]:
 def merge_nodes(nodes: list[Node], required_len: int) -> tuple[list[Node], int]:
     sum_dip = 0
     while len(nodes) > required_len:
-        min_tuple = None, (None, float("inf"))
+        min_tuple = None, None, float("inf")
         for i, (a, b) in enumerate(zip(nodes, nodes[1:])):
             parent_node, dip = merge_two_nodes(a, b)
-            if dip < min_tuple[1][1]:
-                min_tuple = i, (parent_node, dip)
-        idx, (parent_node, dip) = min_tuple
+            if dip < min_tuple[2]:
+                min_tuple = i, parent_node, dip
+        idx, parent_node, dip = min_tuple
         nodes = nodes[:idx] + [parent_node] + nodes[idx + 2 :]
         sum_dip += dip
 
