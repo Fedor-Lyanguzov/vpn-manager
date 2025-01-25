@@ -19,10 +19,6 @@ def find_parent(a: Node, b: Node) -> Node:
         mask = (mask << 1) & ((1 << 32) - 1)
     ip = ip_a & mask
     parent_node = ip, mask_len
-    if parent_node == a or parent_node == b:
-        raise Cidr4MergerError(
-            f"Error! Trying to find common parent of network and subnet! {parent_node=}, {a=}, {b=}."
-        )
     return parent_node
 
 
@@ -64,6 +60,20 @@ def merge_nodes(nodes: list[Node], required_len: int) -> tuple[list[Node], int]:
     return nodes, sum_dip
 
 
+def find_subnets(nodes: list[Node]) -> list[tuple[Node, Node]]:
+    subnets = []
+    for i, (a, b) in enumerate(zip(nodes, nodes[1:])):
+        parent_node, dip = merge_two_nodes(a, b)
+        if parent_node == a or parent_node == b:
+            subnets.append((a, b))
+    return subnets
+
+
+def ensure_no_subnets(nodes: list[Node]):
+    if subnets := find_subnets(nodes):
+        raise Cidr4MergerError(f"There are subnets! {subnets=}")
+
+
 def find_neighbors(nodes: list[Node]) -> list[tuple[int, Node, Node]]:
     neighbors = []
     for i, (a, b) in enumerate(zip(nodes, nodes[1:])):
@@ -73,10 +83,17 @@ def find_neighbors(nodes: list[Node]) -> list[tuple[int, Node, Node]]:
     return neighbors
 
 
+def ensure_no_neighbors(nodes: list[Node]):
+    if neighbors := find_neighbors(nodes):
+        raise Cidr4MergerError(f"There are neighbors! {neighbors=}")
+
+
 def main():
     required_len = 20
     data = get_data()
     nodes = sorted(map(cidr4_to_node, data))
+    ensure_no_subnets(nodes)
+    ensure_no_neighbors(nodes)
     merged_nodes, sum_dip = merge_nodes(nodes, required_len)
     cidr4s = [make_cidr4(ip, mask_len) for ip, mask_len in merged_nodes]
     print(cidr4s, sum_dip, sep="\n")

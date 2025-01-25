@@ -1,7 +1,4 @@
-import pytest
-
 from vpn_manager.cidr4_merge.cidr4_merger import (
-    Cidr4MergerError,
     calc_dip,
     cidr4_to_node,
     find_neighbors,
@@ -47,30 +44,9 @@ def test_find_parent():
     assert find_parent((0, 2), (3221225472, 2)) == (0, 0)
     assert find_parent((1, 32), (6, 32)) == (0, 29)
 
-
-def test_find_parent__with_exception():
-    with pytest.raises(Exception) as exc_info:
-        find_parent((0, 32), (0, 29))
-    assert (
-        str(exc_info.value)
-        == "Error! Trying to find common parent of network and subnet! parent_node=(0, 29), a=(0, 32), b=(0, 29)."
-    )
-    assert exc_info.type is Cidr4MergerError
-    with pytest.raises(Exception) as exc_info:
-        find_parent((0, 1), (1073741824, 2))
-    assert (
-        str(exc_info.value)
-        == "Error! Trying to find common parent of network and subnet! parent_node=(0, 1), a=(0, 1), b=(1073741824, 2)."
-    )
-    assert exc_info.type is Cidr4MergerError
-
-    with pytest.raises(Exception) as exc_info:
-        find_parent((0, 0), (3221225472, 2))
-    assert (
-        str(exc_info.value)
-        == "Error! Trying to find common parent of network and subnet! parent_node=(0, 0), a=(0, 0), b=(3221225472, 2)."
-    )
-    assert exc_info.type is Cidr4MergerError
+    assert find_parent((0, 32), (0, 29)) == (0, 29)
+    assert find_parent((0, 1), (1073741824, 2)) == (0, 1)
+    assert find_parent((0, 0), (3221225472, 2)) == (0, 0)
 
 
 def test_calc_dip():
