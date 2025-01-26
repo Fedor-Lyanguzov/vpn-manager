@@ -1,8 +1,4 @@
-from vpn_manager.cidr4_merge.cidr4_merger import (
-    find_neighbors,
-    merge_nodes,
-    solution,
-)
+from vpn_manager.cidr4_merge.cidr4_merger import find_neighbors, merge_nodes, solution
 
 
 def test_true():
