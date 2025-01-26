@@ -31,10 +31,10 @@ def calc_dip(la: int, lb: int, lp: int) -> int:
     return dip(la, lp) + dip(lb, lp)
 
 
-def merge_two_nodes(node_a: Node, node_b: Node) -> tuple[Node, int]:
-    parent_node = find_parent(node_a, node_b)
-    dip = calc_dip(node_a[1], node_b[1], parent_node[1])
-    return parent_node, dip
+def merge_two_nodes(a: Node, b: Node) -> tuple[Node, int]:
+    p = find_parent(a, b)
+    dip = calc_dip(a[1], b[1], p[1])
+    return p, dip
 
 
 def merge_nodes(nodes: list[Node], required_len: int) -> tuple[list[Node], int]:
