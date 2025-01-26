@@ -38,7 +38,7 @@ def ensure_no_neighbors(nodes: list[Node]):
 
 
 def merge_nodes(a: Node, b: Node) -> tuple[Node, int]:
-    def find_parent(a, b) -> Node:
+    def find_parent(a, b):
         ia, la = a
         ib, lb = b
         min_l = min(la, lb)
