@@ -48,18 +48,15 @@ def merge_nodes(a: Node, b: Node) -> tuple[Node, int]:
             mask = (mask << 1) & ((1 << 32) - 1)
         return ia & mask, min_l
 
-    def calc_dip(la, lb, lp):
-        def dip(l1, lp):
-            m = lp + 1
-            res = 1 << (l1 - m)
-            res -= 1
-            res <<= 32 - l1
-            return res
-
-        return dip(la, lp) + dip(lb, lp)
+    def calc_dip(l1, lp):
+        m = lp + 1
+        res = 1 << (l1 - m)
+        res -= 1
+        res <<= 32 - l1
+        return res
 
     p = find_parent(a, b)
-    dip = calc_dip(a[1], b[1], p[1])
+    dip = calc_dip(a[1], p[1]) + calc_dip(b[1], p[1])
     return p, dip
 
 
