@@ -10,27 +10,25 @@ class Cidr4MergerError(Exception):
 
 
 def find_parent(a: Node, b: Node) -> Node:
-    ip_a, mask_len_a = a
-    ip_b, mask_len_b = b
-    mask_len = min(mask_len_a, mask_len_b)
-    mask = ((1 << mask_len) - 1) << (32 - mask_len)
-    while ip_a & mask != ip_b & mask:
-        mask_len -= 1
+    ia, la = a
+    ib, lb = b
+    min_l = min(la, lb)
+    mask = ((1 << min_l) - 1) << (32 - min_l)
+    while ia & mask != ib & mask:
+        min_l -= 1
         mask = (mask << 1) & ((1 << 32) - 1)
-    ip = ip_a & mask
-    parent_node = ip, mask_len
-    return parent_node
+    return ia & mask, min_l
 
 
-def calc_dip(mask_len_a: int, mask_len_b: int, mask_len_p: int) -> int:
-    def dip(mla, mlp):
-        m = mlp + 1
-        res = 1 << (mla - m)
+def calc_dip(la: int, lb: int, lp: int) -> int:
+    def dip(l1, lp):
+        m = lp + 1
+        res = 1 << (l1 - m)
         res -= 1
-        res <<= 32 - mla
+        res <<= 32 - l1
         return res
 
-    return dip(mask_len_a, mask_len_p) + dip(mask_len_b, mask_len_p)
+    return dip(la, lp) + dip(lb, lp)
 
 
 def merge_two_nodes(node_a: Node, node_b: Node) -> tuple[Node, int]:
