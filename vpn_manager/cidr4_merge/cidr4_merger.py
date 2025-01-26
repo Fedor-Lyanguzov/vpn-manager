@@ -74,6 +74,8 @@ def solution(nodes: list[Node], req_len: int) -> tuple[list[Node], int]:
             p, dip = merge_nodes(a, b)
             if dip < min_t[2]:
                 min_t = i, p, dip
+            if dip == 0:
+                break
         i, p, dip = min_t
         nodes = nodes[:i] + [p] + nodes[i + 2 :]
         sum_dip += dip
