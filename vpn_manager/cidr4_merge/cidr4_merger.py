@@ -37,29 +37,27 @@ def ensure_no_neighbors(nodes: list[Node]):
         raise Cidr4MergerError(f"There are neighbors! {neighbors=}")
 
 
-def find_parent(a: Node, b: Node) -> Node:
-    ia, la = a
-    ib, lb = b
-    min_l = min(la, lb)
-    mask = ((1 << min_l) - 1) << (32 - min_l)
-    while ia & mask != ib & mask:
-        min_l -= 1
-        mask = (mask << 1) & ((1 << 32) - 1)
-    return ia & mask, min_l
-
-
-def calc_dip(la: int, lb: int, lp: int) -> int:
-    def dip(l1, lp):
-        m = lp + 1
-        res = 1 << (l1 - m)
-        res -= 1
-        res <<= 32 - l1
-        return res
-
-    return dip(la, lp) + dip(lb, lp)
-
-
 def merge_nodes(a: Node, b: Node) -> tuple[Node, int]:
+    def find_parent(a: Node, b: Node) -> Node:
+        ia, la = a
+        ib, lb = b
+        min_l = min(la, lb)
+        mask = ((1 << min_l) - 1) << (32 - min_l)
+        while ia & mask != ib & mask:
+            min_l -= 1
+            mask = (mask << 1) & ((1 << 32) - 1)
+        return ia & mask, min_l
+
+    def calc_dip(la: int, lb: int, lp: int) -> int:
+        def dip(l1, lp):
+            m = lp + 1
+            res = 1 << (l1 - m)
+            res -= 1
+            res <<= 32 - l1
+            return res
+
+        return dip(la, lp) + dip(lb, lp)
+
     p = find_parent(a, b)
     dip = calc_dip(a[1], b[1], p[1])
     return p, dip
