@@ -37,7 +37,7 @@ def merge_two_nodes(a: Node, b: Node) -> tuple[Node, int]:
     return p, dip
 
 
-def merge_nodes(nodes: list[Node], req_len: int) -> tuple[list[Node], int]:
+def solution(nodes: list[Node], req_len: int) -> tuple[list[Node], int]:
     sum_dip = 0
     while len(nodes) > req_len:
         min_t = None, None, float("inf")
@@ -92,7 +92,7 @@ def main():
     nodes = sorted(map(cidr4_to_node, data))
     ensure_no_subnets(nodes)
     ensure_no_neighbors(nodes)
-    merged_nodes, sum_dip = merge_nodes(nodes, required_len)
+    merged_nodes, sum_dip = solution(nodes, required_len)
     cidr4s = [make_cidr4(ip, mask_len) for ip, mask_len in merged_nodes]
     print(cidr4s, sum_dip, sep="\n")
 
