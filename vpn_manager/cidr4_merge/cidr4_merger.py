@@ -37,22 +37,22 @@ def merge_two_nodes(a: Node, b: Node) -> tuple[Node, int]:
     return p, dip
 
 
-def merge_nodes(nodes: list[Node], required_len: int) -> tuple[list[Node], int]:
+def merge_nodes(nodes: list[Node], req_len: int) -> tuple[list[Node], int]:
     sum_dip = 0
-    while len(nodes) > required_len:
-        min_tuple = None, None, float("inf")
+    while len(nodes) > req_len:
+        min_t = None, None, float("inf")
         for i, (a, b) in enumerate(zip(nodes, nodes[1:])):
-            parent_node, dip = merge_two_nodes(a, b)
-            if dip < min_tuple[2]:
-                min_tuple = i, parent_node, dip
-        idx, parent_node, dip = min_tuple
-        nodes = nodes[:idx] + [parent_node] + nodes[idx + 2 :]
+            p, dip = merge_two_nodes(a, b)
+            if dip < min_t[2]:
+                min_t = i, p, dip
+        i, p, dip = min_t
+        nodes = nodes[:i] + [p] + nodes[i + 2 :]
         sum_dip += dip
 
-    while neighbors := find_neighbors(nodes):
-        idx, a, b = neighbors[0]
-        parent_node, dip = merge_two_nodes(a, b)
-        nodes = nodes[:idx] + [parent_node] + nodes[idx + 2 :]
+    while nbs := find_neighbors(nodes):
+        i, a, b = nbs[0]
+        p, dip = merge_two_nodes(a, b)
+        nodes = nodes[:i] + [p] + nodes[i + 2 :]
         sum_dip += dip
 
     return nodes, sum_dip
