@@ -9,6 +9,34 @@ class Cidr4MergerError(Exception):
     pass
 
 
+def find_subnets(nodes: list[Node]) -> list[tuple[Node, Node]]:
+    subnets = []
+    for i, (a, b) in enumerate(zip(nodes, nodes[1:])):
+        parent_node, dip = merge_nodes(a, b)
+        if parent_node == a or parent_node == b:
+            subnets.append((a, b))
+    return subnets
+
+
+def ensure_no_subnets(nodes: list[Node]):
+    if subnets := find_subnets(nodes):
+        raise Cidr4MergerError(f"There are subnets! {subnets=}")
+
+
+def find_neighbors(nodes: list[Node]) -> list[tuple[int, Node, Node]]:
+    neighbors = []
+    for i, (a, b) in enumerate(zip(nodes, nodes[1:])):
+        parent_node, dip = merge_nodes(a, b)
+        if parent_node[1] + 1 == a[1] == b[1]:
+            neighbors.append((i, a, b))
+    return neighbors
+
+
+def ensure_no_neighbors(nodes: list[Node]):
+    if neighbors := find_neighbors(nodes):
+        raise Cidr4MergerError(f"There are neighbors! {neighbors=}")
+
+
 def find_parent(a: Node, b: Node) -> Node:
     ia, la = a
     ib, lb = b
@@ -31,7 +59,7 @@ def calc_dip(la: int, lb: int, lp: int) -> int:
     return dip(la, lp) + dip(lb, lp)
 
 
-def merge_two_nodes(a: Node, b: Node) -> tuple[Node, int]:
+def merge_nodes(a: Node, b: Node) -> tuple[Node, int]:
     p = find_parent(a, b)
     dip = calc_dip(a[1], b[1], p[1])
     return p, dip
@@ -42,7 +70,7 @@ def solution(nodes: list[Node], req_len: int) -> tuple[list[Node], int]:
     while len(nodes) > req_len:
         min_t = None, None, float("inf")
         for i, (a, b) in enumerate(zip(nodes, nodes[1:])):
-            p, dip = merge_two_nodes(a, b)
+            p, dip = merge_nodes(a, b)
             if dip < min_t[2]:
                 min_t = i, p, dip
         i, p, dip = min_t
@@ -51,39 +79,11 @@ def solution(nodes: list[Node], req_len: int) -> tuple[list[Node], int]:
 
     while nbs := find_neighbors(nodes):
         i, a, b = nbs[0]
-        p, dip = merge_two_nodes(a, b)
+        p, dip = merge_nodes(a, b)
         nodes = nodes[:i] + [p] + nodes[i + 2 :]
         sum_dip += dip
 
     return nodes, sum_dip
-
-
-def find_subnets(nodes: list[Node]) -> list[tuple[Node, Node]]:
-    subnets = []
-    for i, (a, b) in enumerate(zip(nodes, nodes[1:])):
-        parent_node, dip = merge_two_nodes(a, b)
-        if parent_node == a or parent_node == b:
-            subnets.append((a, b))
-    return subnets
-
-
-def ensure_no_subnets(nodes: list[Node]):
-    if subnets := find_subnets(nodes):
-        raise Cidr4MergerError(f"There are subnets! {subnets=}")
-
-
-def find_neighbors(nodes: list[Node]) -> list[tuple[int, Node, Node]]:
-    neighbors = []
-    for i, (a, b) in enumerate(zip(nodes, nodes[1:])):
-        parent_node, dip = merge_two_nodes(a, b)
-        if parent_node[1] + 1 == a[1] == b[1]:
-            neighbors.append((i, a, b))
-    return neighbors
-
-
-def ensure_no_neighbors(nodes: list[Node]):
-    if neighbors := find_neighbors(nodes):
-        raise Cidr4MergerError(f"There are neighbors! {neighbors=}")
 
 
 def main():

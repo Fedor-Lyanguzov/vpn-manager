@@ -4,7 +4,7 @@ from vpn_manager.cidr4_merge.cidr4_merger import (
     find_neighbors,
     find_parent,
     make_cidr4,
-    merge_two_nodes,
+    merge_nodes,
     solution,
 )
 
@@ -62,13 +62,13 @@ def test_calc_dip():
     assert calc_dip(3, 3, 1) == 2**30
 
 
-def test_merge_two_nodes():
-    assert merge_two_nodes((0, 32), (1, 32)) == ((0, 31), 0)
-    assert merge_two_nodes((0, 32), (2, 32)) == ((0, 30), 2)
-    assert merge_two_nodes((0, 32), (5, 32)) == ((0, 29), 6)
-    assert merge_two_nodes((3, 32), (4, 32)) == ((0, 29), 6)
-    assert merge_two_nodes((0, 32), (4, 30)) == ((0, 29), 3)
-    assert merge_two_nodes((0, 32), (6, 31)) == ((0, 29), 5)
+def test_merge_nodes():
+    assert merge_nodes((0, 32), (1, 32)) == ((0, 31), 0)
+    assert merge_nodes((0, 32), (2, 32)) == ((0, 30), 2)
+    assert merge_nodes((0, 32), (5, 32)) == ((0, 29), 6)
+    assert merge_nodes((3, 32), (4, 32)) == ((0, 29), 6)
+    assert merge_nodes((0, 32), (4, 30)) == ((0, 29), 3)
+    assert merge_nodes((0, 32), (6, 31)) == ((0, 29), 5)
 
 
 def test_find_neighbors():
@@ -96,7 +96,7 @@ def test_find_neighbors():
     ]
 
 
-def test_merge_nodes():
+def test_solution():
     assert solution(
         [
             (0, 32),
