@@ -38,7 +38,7 @@ def ensure_no_neighbors(nodes: list[Node]):
 
 
 def merge_nodes(a: Node, b: Node) -> tuple[Node, int]:
-    def find_parent(a: Node, b: Node) -> Node:
+    def find_parent(a, b) -> Node:
         ia, la = a
         ib, lb = b
         min_l = min(la, lb)
@@ -48,7 +48,7 @@ def merge_nodes(a: Node, b: Node) -> tuple[Node, int]:
             mask = (mask << 1) & ((1 << 32) - 1)
         return ia & mask, min_l
 
-    def calc_dip(la: int, lb: int, lp: int) -> int:
+    def calc_dip(la, lb, lp):
         def dip(l1, lp):
             m = lp + 1
             res = 1 << (l1 - m)
