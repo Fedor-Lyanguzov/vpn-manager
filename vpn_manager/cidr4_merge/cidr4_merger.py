@@ -1,11 +1,17 @@
 import cProfile
 
+from vpn_manager.cidr4_merge import Cidr4MergerError
+
 from .util import cidr4_to_node, get_data, make_cidr4
 
 Node = tuple[int, int]
 
 
-class Cidr4MergerError(Exception):
+class EnsureNoSubnetError(Cidr4MergerError):
+    pass
+
+
+class EnsureNoNeighborsError(Cidr4MergerError):
     pass
 
 
@@ -20,7 +26,7 @@ def find_subnets(nodes: list[Node]) -> list[tuple[Node, Node]]:
 
 def ensure_no_subnets(nodes: list[Node]):
     if subnets := find_subnets(nodes):
-        raise Cidr4MergerError(f"There are subnets! {subnets=}")
+        raise EnsureNoSubnetError(f"There are subnets! {subnets=}")
 
 
 def find_neighbors(nodes: list[Node]) -> list[tuple[int, Node, Node]]:
@@ -34,7 +40,7 @@ def find_neighbors(nodes: list[Node]) -> list[tuple[int, Node, Node]]:
 
 def ensure_no_neighbors(nodes: list[Node]):
     if neighbors := find_neighbors(nodes):
-        raise Cidr4MergerError(f"There are neighbors! {neighbors=}")
+        raise EnsureNoNeighborsError(f"There are neighbors! {neighbors=}")
 
 
 def merge_nodes(a: Node, b: Node) -> tuple[Node, int]:
